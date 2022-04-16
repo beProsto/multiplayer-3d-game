@@ -1,11 +1,18 @@
-## [OWL](https://github.com/beProsto/OWL) (Open Windowing Library) with [GLAD](https://glad.dav1d.de/) (OpenGL Loader)
+## Mutliplayer 3D Game
 
 This aims to be a project using [`OWL`](https://github.com/beProsto/OWL) with modern OpenGL (3.3 to be exact), using [`GLAD`](https://glad.dav1d.de/) as a binding loader.
-Using GLAD instead of GLEW makes the project free of any dll files.
+Using GLAD instead of GLEW makes the project free of any dll files, additionally making it more lightweight.
+
+Current roadmap:
+1. ~~Windowing~~
+2. Graphics
+3. Audio
+4. Networking
+
 
 To clone the project:
 ```
-git clone --recurse-submodules https://github.com/beProsto/OWL-with-GLAD
+git clone --recurse-submodules https://github.com/beProsto/multiplayer-3d-game
 ```
 Then to compile and run the project:
 ```
