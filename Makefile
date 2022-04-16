@@ -37,7 +37,8 @@ objs/glad.o: ext/glad/src/glad.c
 	$(CC) ext/glad/src/glad.c $(GLAD_FLAGS) $(CC_FLAGS) -c -o objs/glad.o
 
 $(OWL_LIB_FILE):
-	cd ext & cd OWL & cd build & make
+	cd ext & cd OWL & cd build & make justlibrary
+	
 
 clean:
 	-rm $(EXE)
