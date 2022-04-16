@@ -34,3 +34,6 @@ void Mesh::SupplyIndices(const std::vector<unsigned int>& _data) {
 	m_IB.StoreData(_data);
 	m_IndexCount = _data.size();
 }
+unsigned int Mesh::GetIndexCount() const {
+	return m_IndexCount;
+}

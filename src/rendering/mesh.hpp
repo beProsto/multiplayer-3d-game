@@ -39,6 +39,8 @@ public:
 		glEnableVertexAttribArray(_location);
 	}
 
+	unsigned int GetIndexCount() const;
+
 protected:
 	unsigned int m_VAO;
 	VBO m_IB;

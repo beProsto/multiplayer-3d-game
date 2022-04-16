@@ -32,7 +32,7 @@ void App::Update() {
 	glViewport(0, 0, m_Window.GetSize().x, m_Window.GetSize().y);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, m_Mesh.GetIndexCount(), GL_UNSIGNED_INT, 0);
 
 	m_Context.SwapBuffers();
 }
