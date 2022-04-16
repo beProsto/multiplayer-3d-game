@@ -12,10 +12,10 @@
 
 /* Math Operations */
 namespace Math {
-	float Rad(float _a) {
+	inline float Rad(float _a) {
 		return _a * (M_PI / 180.0f);
 	}
-	float Deg(float _a) {
+	inline float Deg(float _a) {
 		return _a / (M_PI / 180.0f);
 	}
 }

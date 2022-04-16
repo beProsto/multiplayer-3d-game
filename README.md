@@ -6,8 +6,9 @@ Using GLAD instead of GLEW makes the project free of any dll files, additionally
 Current roadmap:
 1. ~~Windowing~~
 2. Graphics
-3. Audio
-4. Networking
+3. Assimp
+4. OpenAL
+5. Networking
 
 
 To clone the project:

@@ -1,12 +1,4 @@
-#include <iostream>
-#include <thread>
-
-#include <glad/glad.h>
-#include <OWL/OWL.hpp>
-#include <OWL/time.hpp>
-#include <OWL/GLContext.hpp>
-
-#include "math/math.hpp"
+#include "app.hpp"
 
 int Main(const std::vector<std::string>& _args) {
 	OWL::GLContext context;

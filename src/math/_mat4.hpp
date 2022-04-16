@@ -11,14 +11,14 @@ Some of these require a pointer to float and name it _in.
 These pointers should point to a predefined array of floats, with 16 elements. */
 namespace Math {
 	namespace _Mat4 {
-		void Copy(float* _mat, const float* _in) {
+		inline void Copy(float* _mat, const float* _in) {
 			memcpy(_mat, _in, 16 * sizeof(float));
 		}
-		void Identity(float* _mat) {
+		inline void Identity(float* _mat) {
 			memset(_mat, 0, 16 * sizeof(float));
 			_mat[0] = _mat[5] = _mat[10] = _mat[15] = 1.0f;
 		}
-		void Transpose(float* _mat) {
+		inline void Transpose(float* _mat) {
 			std::swap(_mat[1], _mat[4]);
 			std::swap(_mat[2], _mat[8]);
 			std::swap(_mat[3], _mat[12]);
@@ -26,7 +26,7 @@ namespace Math {
 			std::swap(_mat[11], _mat[14]);
 			std::swap(_mat[6], _mat[9]);
 		}
-		void Inverse(float* _mat) {
+		inline void Inverse(float* _mat) {
 			float inv[16];
 			float det = 0.0f;
 
@@ -68,13 +68,13 @@ namespace Math {
 			_mat[14] = inv[14] * det;
 			_mat[15] = inv[15] * det;
 		}
-		void MultiplyByVec4(float* _retX, float* _retY, float* _retZ, float* _retW, const float* _mat, float _x, float _y, float _z, float _w) {
+		inline void MultiplyByVec4(float* _retX, float* _retY, float* _retZ, float* _retW, const float* _mat, float _x, float _y, float _z, float _w) {
 			*_retX = _mat[0] * _x + _mat[1] * _y + _mat[2] * _z + _mat[3] * _w;
 			*_retY = _mat[4] * _x + _mat[5] * _y + _mat[6] * _z + _mat[7] * _w;
 			*_retZ = _mat[8] * _x + _mat[9] * _y + _mat[10] * _z + _mat[11] * _w;
 			*_retW = _mat[12] * _x + _mat[13] * _y + _mat[14] * _z + _mat[15] * _w;
 		}
-		void Multiply(float* _mat, const float* _a, const float* _b) {
+		inline void Multiply(float* _mat, const float* _a, const float* _b) {
 			float a0 = _a[0],
 				a1 = _a[1],
 				a2 = _a[2],
@@ -132,7 +132,7 @@ namespace Math {
 			_mat[14] = b0 * a2 + b1 * a6 + b2 * a10 + b3 * a14;
 			_mat[15] = b0 * a3 + b1 * a7 + b2 * a11 + b3 * a15;
 		}
-		void Perspective(float* _mat, float _fov, float _aspect, float _near, float _far) {
+		inline void Perspective(float* _mat, float _fov, float _aspect, float _near, float _far) {
 			memset(_mat, 0, 16 * sizeof(float));
 			float frustumScale = 1.0 / std::tan(_fov / 2);
 			_mat[0] = frustumScale / _aspect;
@@ -141,7 +141,7 @@ namespace Math {
 			_mat[14] = (2 * _far * _near) / (_near - _far);
 			_mat[11] = -1.0f;
 		}
-		void Orthographic(float* _mat, float _left, float _right, float _bottom, float _top, float _near, float _far) {
+		inline void Orthographic(float* _mat, float _left, float _right, float _bottom, float _top, float _near, float _far) {
 			memset(_mat, 0, 16 * sizeof(float));
 			_mat[0] = 2.0f / (_right - _left);
 			_mat[5] = 2.0f / (_top - _bottom);
@@ -151,17 +151,17 @@ namespace Math {
 			_mat[14] = -((_far + _near) / (_far - _near));
 			_mat[15] = 1.0f;
 		}
-		void Translate(float* _mat, float _x, float _y, float _z) {
+		inline void Translate(float* _mat, float _x, float _y, float _z) {
 			_mat[12] += _x;
 			_mat[13] += _y;
 			_mat[14] += _z;
 		}
-		void Translate(float* _mat, const float* _in, float _x, float _y, float _z) {
+		inline void Translate(float* _mat, const float* _in, float _x, float _y, float _z) {
 			_mat[12] = _in[12] + _x;
 			_mat[13] = _in[13] + _y;
 			_mat[14] = _in[14] + _z;
 		}
-		void RotateZ(float* _mat, float _rad) {
+		inline void RotateZ(float* _mat, float _rad) {
 			float s = std::sin(_rad);
 			float c = std::cos(_rad);
 			float in00 = _mat[0];
@@ -182,7 +182,7 @@ namespace Math {
 			_mat[6] = in12 * c - in02 * s;
 			_mat[7] = in13 * c - in03 * s;
 		}
-		void RotateZ(float* _mat, const float* _in, float _rad) {
+		inline void RotateZ(float* _mat, const float* _in, float _rad) {
 			float s = std::sin(_rad);
 			float c = std::cos(_rad);
 			float in00 = _in[0];
@@ -212,7 +212,7 @@ namespace Math {
 			_mat[6] = in12 * c - in02 * s;
 			_mat[7] = in13 * c - in03 * s;
 		}
-		void RotateY(float* _mat, float _rad) {
+		inline void RotateY(float* _mat, float _rad) {
 			float s = std::sin(_rad);
 			float c = std::cos(_rad);
 			float in00 = _mat[0];
@@ -233,7 +233,7 @@ namespace Math {
 			_mat[10] = in02 * s + in22 * c;
 			_mat[11] = in03 * s + in23 * c;
 		}
-		void RotateY(float* _mat, const float* _in, float _rad) {
+		inline void RotateY(float* _mat, const float* _in, float _rad) {
 			float s = std::sin(_rad);
 			float c = std::cos(_rad);
 			float in00 = _in[0];
@@ -263,7 +263,7 @@ namespace Math {
 			_mat[10] = in02 * s + in22 * c;
 			_mat[11] = in03 * s + in23 * c;
 		}
-		void RotateX(float* _mat, float _rad) {
+		inline void RotateX(float* _mat, float _rad) {
 			float s = std::sin(_rad);
 			float c = std::cos(_rad);
 			float in10 = _mat[4];
@@ -284,7 +284,7 @@ namespace Math {
 			_mat[10] = in22 * c - in12 * s;
 			_mat[11] = in23 * c - in13 * s;
 		}
-		void RotateX(float* _mat, const float* _in, float _rad) {
+		inline void RotateX(float* _mat, const float* _in, float _rad) {
 			float s = std::sin(_rad);
 			float c = std::cos(_rad);
 			float in10 = _in[4];
@@ -314,12 +314,12 @@ namespace Math {
 			_mat[10] = in22 * c - in12 * s;
 			_mat[11] = in23 * c - in13 * s;
 		}
-		void Scale(float* _mat, float _x, float _y, float _z) {
+		inline void Scale(float* _mat, float _x, float _y, float _z) {
 			_mat[0] *= _x;
 			_mat[5] *= _y;
 			_mat[10] *= _z;
 		}
-		void Scale(float* _mat, const float* _in, float _x, float _y, float _z) {
+		inline void Scale(float* _mat, const float* _in, float _x, float _y, float _z) {
 			memcpy(_mat, _in, 16 * sizeof(float));
 			_mat[0] *= _x;
 			_mat[5] *= _y;
