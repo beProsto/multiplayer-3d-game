@@ -18,8 +18,10 @@ GLAD_INCLUDE = -Iext/glad/include
 OWL_FLAGS = $(OWL_INCLUDE) $(LINK_OWL) $(OWL_LIB_FILE)
 GLAD_FLAGS = $(GLAD_INCLUDE)
 
+rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+
 SRC_DIR = src
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+SRCS = $(call rwildcard,$(SRC_DIR),*.cpp)
 
 OBJ_DIR = objs
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
@@ -42,6 +44,6 @@ $(OWL_LIB_FILE):
 
 clean:
 	-rm $(EXE)
-	-rm objs/*.o
+	-rm -r objs/*.o
 	-del $(EXE)
-	-del objs\*.o
+	-del /s /q objs\*.o

@@ -1,5 +1,4 @@
-#ifndef _APP_HPP
-#define _APP_HPP 
+#pragma once
 
 #include <glad/glad.h>
 #include <OWL/OWL.hpp>
@@ -7,17 +6,19 @@
 #include <OWL/GLContext.hpp>
 #include "math/math.hpp"
 
-struct AppData;
+#include "rendering/mesh.hpp"
 
 class App {
 public:
-	App();
+	App(OWL::Window& _window, OWL::GLContext& _context);
 	~App();
 
-	float getA();
+	void Start();
+	void Update();
 
-private:
-	AppData* m_Data;
+protected:
+	OWL::GLContext& m_Context;
+	OWL::Window& m_Window;
+
+	Mesh m_Mesh;
 };
-
-#endif
