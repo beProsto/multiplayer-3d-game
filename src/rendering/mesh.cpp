@@ -1,44 +1,44 @@
 #include "mesh.hpp"
-
-VBO::VBO() {
-	m_ID = 0;
-	m_Type= 0;
-}
-VBO::VBO(unsigned int _type) {
-	Create(_type);
-}
-VBO::~VBO() {
-	if(m_ID != 0 || m_Type != 0) {
-		glDeleteBuffers(1, &m_ID);
-	}
-}
-void VBO::Create(unsigned int _type) {
-	m_Type = _type;
-	glGenBuffers(1, &m_ID);
-	Bind();
-} 
-void VBO::Bind() const {
-	glBindBuffer(m_Type, m_ID);
-}
+#include <glad/glad.h>
 
 Mesh::Mesh() {
 	glGenVertexArrays(1, &m_VAO);
-	glBindVertexArray(m_VAO);
-
-	m_IB.Create(GL_ELEMENT_ARRAY_BUFFER);
+	glGenBuffers(1, &m_IB);
+	Bind();
 }
 Mesh::~Mesh() {
 	glDeleteVertexArrays(1, &m_VAO);
+	glDeleteBuffers(1, &m_IB);
+	for(unsigned int& ab : m_ABs) {
+		glDeleteBuffers(1, &ab);
+	} 
 }
-void Mesh::SupplyIndices(const std::vector<unsigned int>& _data) {
+
+void Mesh::Bind() const {
 	glBindVertexArray(m_VAO);
-	m_IB.StoreData(_data);
-	m_IndexCount = _data.size();
 }
 unsigned int Mesh::GetIndexCount() const {
 	return m_IndexCount;
 }
-void Mesh::Bind() const {
-	glBindVertexArray(m_VAO);
-	m_IB.Bind();
+
+void Mesh::SupplyIndices(const std::vector<unsigned int>& _data) {
+	Bind();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IB);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*_data.size(), _data.data(), GL_STATIC_DRAW);
+	m_IndexCount = _data.size();
+}
+void Mesh::SupplyArray(unsigned int _location, unsigned int _stride, const std::vector<float>& _data) {
+	Bind();
+	// m_ABs.push_back(VBO(GL_ARRAY_BUFFER));
+	// m_ABs.back().Bind();
+	// m_ABs.back().StoreData(_data);
+	unsigned int arrayBuffer;
+	glGenBuffers(1, &arrayBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_data.size(), _data.data(), GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(_location);
+	glVertexAttribPointer(_location, _stride, GL_FLOAT, false, _stride*sizeof(float), (void*)0);
+	
+	m_ABs.push_back(arrayBuffer);
 }

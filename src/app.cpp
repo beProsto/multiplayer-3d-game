@@ -11,35 +11,38 @@ App::~App() {
 void App::Start() {
 	glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
 
-	m_Mesh.SupplyIndices(std::vector<unsigned int>{0,0, 1,1, 2,2, 2,2, 3,3, 0,0});
+	m_Mesh.SupplyIndices(std::vector<unsigned int>{0, 1, 2, 2, 3, 0});
 	m_Mesh.SupplyArray(0, 3, std::vector<float>{
 		-0.5, -0.5, 0.0,
 		-0.5,  0.5, 0.0,
-		 0.5,  0.5, 0.0,
-		 0.5, -0.5, 0.0
+		+0.5,  0.5, 0.0,
+		+0.5, -0.5, 0.0,
 	});
-	// m_Mesh.SupplyArray(1, 2, std::vector<float>{
-	// 	0.0, 0.0,
-	// 	0.0, 1.0,
-	// 	1.0, 1.0,
-	// 	1.0, 0.0
-	// });
+	m_Mesh.SupplyArray(1, 3, std::vector<float>{
+		0.0, 1.0, 1.0,
+		0.0, 0.0, 1.0,
+		1.0, 0.0, 0.0,
+		0.0, 1.0, 0.0
+	});
 
 	std::string vertexShaderSource = R"V0G0N(#version 330 core
 		layout(location = 0) in vec3 a_pos;
-		layout(location = 1) in vec2 a_col;
+		layout(location = 1) in vec3 a_col;
 		
-		uniform mat4 u_mat;
 		out vec3 v_col;
+
+		uniform mat4 u_mat;
 
 		void main() {
 			gl_Position = u_mat * vec4(a_pos, 1.0);
-			v_col = vec3(1.0, 1.0, 0.5);
+			v_col = vec3(a_col);
 		}
 	)V0G0N";
 	std::string fragmentShaderSource = R"V0G0N(#version 330 core
-		layout(location = 0) out vec4 col;
 		in vec3 v_col;
+
+		layout(location = 0) out vec4 col;
+
 		void main() {
 			col = vec4(v_col, 1.0);
 		}
@@ -71,24 +74,24 @@ void App::Start() {
 		m_Window.Close();
 	}
 
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	m_ShaderProgram = glCreateProgram();
+	glAttachShader(m_ShaderProgram, vertexShader);
+	glAttachShader(m_ShaderProgram, fragmentShader);
+	glLinkProgram(m_ShaderProgram);
+	glGetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
 	if(!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		glGetProgramInfoLog(m_ShaderProgram, 512, NULL, infoLog);
 		std::cout << "Shader Program Linking error!\n" << infoLog << std::endl;
 		m_Window.Close();
 	}
-	glUseProgram(shaderProgram);
+	glUseProgram(m_ShaderProgram);
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	lastPosition = m_Window.Mouse.GetPosition();
+	m_LastPosition = m_Window.Mouse.GetPosition();
 
-	scale = -2.0f;
+	m_Scale = -2.0f;
 }
 
 void App::Update() {
@@ -104,26 +107,20 @@ void App::Update() {
 	glViewport(0, 0, m_Window.GetSize().x, m_Window.GetSize().y);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// scale += m_Window.Mouse.GetWheelRotation() / 1000.0f;
-
-	// Math::_Mat4::RotateZ(&rotation[0], 0.1f);
-	// projection = Math::Mat4::Perspective(M_PI/2.0f, m_Window.GetAspect(), 0.1f, 100.0f) * Math::Mat4::Translate(0.0f, 0.0f, scale);
-
-	// OWL::Vec2f thisPosition = m_Window.Mouse.GetPosition();
-	// OWL::Vec2f diff = thisPosition - lastPosition;
-	// lastPosition = thisPosition;
-
-	// if(m_Window.Mouse.IsButtonPressed(OWL::Window::MouseEvent::Left)) {
-	// 	rotation += OWL::Vec2f(diff.y, diff.x) * OWL::Vec2f(0.01f);
-	// 	transform = Math::Mat4::RotateX(rotation.x) * Math::Mat4::RotateY(rotation.y);
-	// }
-// projection * transform
-	Math::Mat4 identity;
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "u_mat"), 1, GL_FALSE, &(identity)[0]);
-
+	m_Scale += m_Window.Mouse.GetWheelRotation() / 1000.0f;
+	m_Projection = Math::Mat4::Perspective(M_PI/2.0f, m_Window.GetAspect(), 0.1f, 100.0f) * Math::Mat4::Translate(0.0f, 0.0f, m_Scale);
+	OWL::Vec2f thisPosition = m_Window.Mouse.GetPosition();
+	OWL::Vec2f diff = thisPosition - m_LastPosition;
+	m_LastPosition = thisPosition;
+	if(m_Window.Mouse.IsButtonPressed(OWL::Window::MouseEvent::Left)) {
+		m_Rotation += OWL::Vec2f(diff.y, diff.x) * OWL::Vec2f(0.01f);
+		m_Transform = Math::Mat4::RotateX(m_Rotation.x) * Math::Mat4::RotateY(m_Rotation.y);
+	}
+	Math::Mat4 identity = m_Projection * m_Transform;
+	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(identity)[0]);
 
 	m_Mesh.Bind();
-	glDrawElements(GL_TRIANGLES, m_Mesh.GetIndexCount(), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	m_Context.SwapBuffers();
 }

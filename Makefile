@@ -48,5 +48,9 @@ $(OWL_LIB_FILE):
 clean:
 	-rm $(EXE)
 	-rm -r objs/*.o
+	-rm -r ext/OWL/build/*.o
+	-rm -r ext/OWL/build/*.lib
 	-del $(EXE)
 	-del /s /q objs\*.o
+	-del /s /q ext\OWL\build\*.o
+	-del /s /q ext\OWL\build\*.lib
