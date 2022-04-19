@@ -43,7 +43,7 @@ objs/glad.o: ext/glad/src/glad.c
 
 $(OWL_LIB_FILE):
 	cd ext & cd OWL & cd build & make justlibrary CC=$(CC) CXX=$(CXX) AR=$(AR)
-	
+
 
 clean:
 	-rm $(EXE)
