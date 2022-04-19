@@ -11,14 +11,14 @@ App::~App() {
 void App::Start() {
 	glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
 
-	m_Mesh.SupplyIndices(std::vector<unsigned int>{0, 1, 2, 2, 3, 0});
-	m_Mesh.SupplyArray(0, 3, std::vector<float>{
+	m_Mesh.SupplyIndices({0, 1, 2, 2, 3, 0});
+	m_Mesh.SupplyArray(0, 3, {
 		-0.5, -0.5, 0.0,
 		-0.5,  0.5, 0.0,
 		+0.5,  0.5, 0.0,
 		+0.5, -0.5, 0.0,
 	});
-	m_Mesh.SupplyArray(1, 3, std::vector<float>{
+	m_Mesh.SupplyArray(1, 3, {
 		0.0, 1.0, 1.0,
 		0.0, 0.0, 1.0,
 		1.0, 0.0, 0.0,
