@@ -8,10 +8,12 @@ ifeq ($(OS),Windows_NT)
 EXE = app.exe
 LINK_OWL = -lopengl32 -lglu32 -lgdi32 -luser32 -lcomctl32 -lkernel32 -lshell32 -lxinput
 OWL_LIB_FILE = ext/OWL/build/OWL.lib
+OPENAL_LIB_FILE = ext/openal-soft/build/Release/OpenAL32.lib
 else
 EXE = app
 LINK_OWL = -lX11 -lGL -lGLX
 OWL_LIB_FILE = ext/OWL/build/libOWL.a
+OPENAL_LIB_FILE = ext/openal-soft/build/Release/libOpenAL32.a
 endif
 
 OWL_INCLUDE = -Iext/OWL/include
@@ -20,6 +22,7 @@ OPENAL_INCLUDE = -Iext/openal-soft/include
 
 OWL_FLAGS = $(OWL_INCLUDE) $(LINK_OWL) $(OWL_LIB_FILE)
 GLAD_FLAGS = $(GLAD_INCLUDE)
+OPENAL_FLAGS = $(OPENAL_INCLUDE) $(OPENAL_LIB_FILE)
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -34,10 +37,10 @@ run: $(EXE)
 	./$(EXE)
 
 $(EXE): $(OBJS) objs/glad.o $(OWL_LIB_FILE)
-	$(CXX) $(OBJS) objs/glad.o -lext/openal-soft/build/Release/OpenAL32.lib $(OPENAL_INCLUDE) $(GLAD_FLAGS) $(OWL_FLAGS) $(CXX_FLAGS) -o $(EXE)
+	$(CXX) $(OBJS) objs/glad.o $(OWL_FLAGS) $(GLAD_FLAGS) $(OPENAL_FLAGS) $(CXX_FLAGS) -o $(EXE)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HDRS)
-	$(CXX) $(word 1, $^) $(OPENAL_INCLUDE) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(CXX_FLAGS) -c -o $@
+	$(CXX) $(word 1, $^) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(OPENAL_INCLUDE) $(CXX_FLAGS) -c -o $@
 
 objs/glad.o: ext/glad/src/glad.c
 	$(CC) ext/glad/src/glad.c $(GLAD_FLAGS) $(CC_FLAGS) -c -o objs/glad.o
