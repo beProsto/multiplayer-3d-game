@@ -1,5 +1,7 @@
 CC = clang
 CXX = clang++
+AR = llvm-ar
+
 CXX_FLAGS = -std=c++17 -Wall -Wpedantic
 
 ifeq ($(OS),Windows_NT)
@@ -22,6 +24,7 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 
 SRC_DIR = src
 SRCS = $(call rwildcard,$(SRC_DIR),*.cpp)
+HDRS = $(call rwildcard,$(SRC_DIR),*.hpp)
 
 OBJ_DIR = objs
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
@@ -32,14 +35,14 @@ run: $(EXE)
 $(EXE): $(OBJS) objs/glad.o $(OWL_LIB_FILE)
 	$(CXX) $(OBJS) objs/glad.o $(GLAD_FLAGS) $(OWL_FLAGS) $(CXX_FLAGS) -o $(EXE)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(CXX) $^ $(CXX_FLAGS) $(OWL_INCLUDE) $(GLAD_INCLUDE) -c -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HDRS)
+	$(CXX) $(word 1, $^) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(CXX_FLAGS) -c -o $@
 
 objs/glad.o: ext/glad/src/glad.c
 	$(CC) ext/glad/src/glad.c $(GLAD_FLAGS) $(CC_FLAGS) -c -o objs/glad.o
 
 $(OWL_LIB_FILE):
-	cd ext & cd OWL & cd build & make justlibrary
+	cd ext & cd OWL & cd build & make justlibrary CC=$(CC) CXX=$(CXX) AR=$(AR)
 	
 
 clean:

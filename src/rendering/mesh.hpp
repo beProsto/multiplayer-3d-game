@@ -33,13 +33,17 @@ public:
 
 	template<typename T>
 	void SupplyArray(unsigned int _location, unsigned int _stride, const std::vector<T>& _data) {
+		glBindVertexArray(m_VAO);
 		m_ABs.push_back(VBO(GL_ARRAY_BUFFER));
+		m_ABs.back().Bind();
 		m_ABs.back().StoreData(_data);
 		glVertexAttribPointer(_location, _stride, GL_FLOAT, false, _stride * sizeof(T), 0);
 		glEnableVertexAttribArray(_location);
 	}
 
 	unsigned int GetIndexCount() const;
+
+	void Bind() const;
 
 protected:
 	unsigned int m_VAO;

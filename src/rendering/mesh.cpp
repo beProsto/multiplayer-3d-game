@@ -31,9 +31,14 @@ Mesh::~Mesh() {
 	glDeleteVertexArrays(1, &m_VAO);
 }
 void Mesh::SupplyIndices(const std::vector<unsigned int>& _data) {
+	glBindVertexArray(m_VAO);
 	m_IB.StoreData(_data);
 	m_IndexCount = _data.size();
 }
 unsigned int Mesh::GetIndexCount() const {
 	return m_IndexCount;
+}
+void Mesh::Bind() const {
+	glBindVertexArray(m_VAO);
+	m_IB.Bind();
 }
