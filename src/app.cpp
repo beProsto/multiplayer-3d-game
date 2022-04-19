@@ -7,6 +7,22 @@ m_Window(_window) {
 App::~App() {
 }
 
+#define M_TAU (M_PI * 2.0)
+#define SAMPLE_RATE 44100
+#define SINE_FREQ 440
+#define ORBIT_PERIOD 3
+#define ORBITS 10
+#define ORBIT_DISTANCE 2.0f
+
+int checkForAlErrors(void) {
+	ALenum error = alGetError();
+	if (error == AL_NO_ERROR) {
+		return 0;
+	} else {
+		fprintf(stderr, "Error: %04X\n", error);
+		return 1;
+	}
+}
 
 void App::Start() {
 	glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
@@ -92,6 +108,61 @@ void App::Start() {
 	m_LastPosition = m_Window.Mouse.GetPosition();
 
 	m_Scale = -2.0f;
+
+	// OPENAL
+	
+	ALCdevice *dev = alcOpenDevice(NULL);
+	if (!dev) {
+		fprintf(stderr, "Unable to open default device\n");
+		m_Window.Close();
+	}
+
+	ALCcontext *ctx = alcCreateContext(dev, NULL);
+	if (!ctx) {
+		fprintf(stderr, "Unable to create context\n");
+		m_Window.Close();
+	}
+
+	alcMakeContextCurrent(ctx);
+	if (checkForAlErrors()) {
+		fprintf(stderr, "Unable to make context current\n");
+		m_Window.Close();
+	}
+
+	ALuint buffers[1];
+	alGenBuffers(sizeof(buffers) / sizeof(*buffers), buffers);
+	if (checkForAlErrors()) {
+		fprintf(stderr, "Unable to generate buffers\n");
+		m_Window.Close();
+	}
+
+	ALuint sources[1];
+	alGenSources(sizeof(sources) / sizeof(*sources), sources);
+	if (checkForAlErrors()) {
+		fprintf(stderr, "Unable to generate sources\n");
+		m_Window.Close();
+	}
+
+	int16_t sineData[SAMPLE_RATE / SINE_FREQ];
+	for (size_t i = 0; i < SAMPLE_RATE / SINE_FREQ; ++i) {
+		sineData[i] = sin(i * M_TAU * SINE_FREQ / SAMPLE_RATE) * INT16_MAX;
+	}
+
+	alBufferData(buffers[0], AL_FORMAT_MONO16, sineData, sizeof(sineData), SAMPLE_RATE);
+	if (checkForAlErrors()) {
+		fprintf(stderr, "Unable to set buffer data\n");
+		m_Window.Close();
+	}
+
+	alSourcei(sources[0], AL_BUFFER, buffers[0]);
+	if (checkForAlErrors()) {
+		fprintf(stderr, "Unable to attach buffer to source\n");
+		m_Window.Close();
+	}
+
+	alSourcei(sources[0], AL_LOOPING, AL_TRUE);
+
+	alSourcePlay(sources[0]);
 }
 
 void App::Update() {

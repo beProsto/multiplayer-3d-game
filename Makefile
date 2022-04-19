@@ -16,6 +16,7 @@ endif
 
 OWL_INCLUDE = -Iext/OWL/include
 GLAD_INCLUDE = -Iext/glad/include
+OPENAL_INCLUDE = -Iext/openal-soft/include
 
 OWL_FLAGS = $(OWL_INCLUDE) $(LINK_OWL) $(OWL_LIB_FILE)
 GLAD_FLAGS = $(GLAD_INCLUDE)
@@ -33,10 +34,10 @@ run: $(EXE)
 	./$(EXE)
 
 $(EXE): $(OBJS) objs/glad.o $(OWL_LIB_FILE)
-	$(CXX) $(OBJS) objs/glad.o $(GLAD_FLAGS) $(OWL_FLAGS) $(CXX_FLAGS) -o $(EXE)
+	$(CXX) $(OBJS) objs/glad.o -lext/openal-soft/build/Release/OpenAL32.lib $(OPENAL_INCLUDE) $(GLAD_FLAGS) $(OWL_FLAGS) $(CXX_FLAGS) -o $(EXE)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HDRS)
-	$(CXX) $(word 1, $^) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(CXX_FLAGS) -c -o $@
+	$(CXX) $(word 1, $^) $(OPENAL_INCLUDE) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(CXX_FLAGS) -c -o $@
 
 objs/glad.o: ext/glad/src/glad.c
 	$(CC) ext/glad/src/glad.c $(GLAD_FLAGS) $(CC_FLAGS) -c -o objs/glad.o

@@ -6,6 +6,9 @@
 #include <OWL/GLContext.hpp>
 #include "math/math.hpp"
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
 #include "rendering/mesh.hpp"
 
 struct Vertex {
@@ -37,6 +40,11 @@ protected:
 	Math::Mat4 m_Projection;
 	OWL::Vec2f m_LastPosition;
 	OWL::Vec2f m_Rotation;
+
+	ALCdevice *m_ALCDev;
+	ALCcontext *m_ALCCtx;
+	ALuint m_ALBuffers[1];
+	ALuint m_ALSources[1];
 
 
 	Mesh m_Mesh;
