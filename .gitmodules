@@ -1,3 +1,6 @@
 [submodule "ext/OWL"]
 	path = ext/OWL
 	url = https://github.com/beProsto/OWL
+[submodule "ext/openal-soft"]
+	path = ext/openal-soft
+	url = https://github.com/kcat/openal-soft
