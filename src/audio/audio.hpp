@@ -3,6 +3,18 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
+class AudioBuffer {
+public:
+	AudioBuffer();
+	~AudioBuffer();
+};
+
+class AudioSource {
+public:
+	AudioSource();
+	~AudioSource();
+};
+
 /// VORBIS
 
 // #include <al.h>

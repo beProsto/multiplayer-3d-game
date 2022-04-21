@@ -163,6 +163,126 @@ void App::Start() {
 	// alSourcei(sources[0], AL_LOOPING, AL_TRUE);
 
 	// alSourcePlay(sources[0]);
+
+
+	/***
+	 * 	WAVE AUDIO FILE LOADING BEGIN
+	***/
+	FILE* audioFile = fopen("assets/audio.wav", "rb");
+
+	if(audioFile == nullptr) {
+		fprintf(stderr, "The file couldn't be loaded!\n");
+		m_Window.Close();
+		return;
+	}
+	
+	fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
+	if(m_AudioFileHeader.riff != 1179011410 /* Non null terminated "RIFF" string */) {
+		fprintf(stderr, "The file isn't WAV! (No 'RIFF' found)\n");
+		m_Window.Close();
+		return;
+	}
+
+	fread(&m_AudioFileHeader.size, sizeof(uint32_t), 1, audioFile);
+
+	fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
+	if(m_AudioFileHeader.riff != 1163280727 /* Non null terminated "WAVE" string */) {
+		fprintf(stderr, "The file isn't WAV! (No 'WAVE' found)\n");
+		m_Window.Close();
+		return;
+	}
+
+	fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
+	if(m_AudioFileHeader.riff != 544501094 /* Non null terminated "fmt " string */) {
+		fprintf(stderr, "The file isn't WAV! (No 'fmt ' found)\n");
+		m_Window.Close();
+		return;
+	}
+
+	fread(&m_AudioFileHeader.chunkSize, sizeof(uint32_t), 1, audioFile);
+	fread(&m_AudioFileHeader.formatType, sizeof(int16_t), 1, audioFile);
+	fread(&m_AudioFileHeader.channels, sizeof(int16_t), 1, audioFile);
+	fread(&m_AudioFileHeader.sampleRate, sizeof(uint32_t), 1, audioFile);
+	fread(&m_AudioFileHeader.avgBytesPerSec, sizeof(uint32_t), 1, audioFile);
+	fread(&m_AudioFileHeader.bytesPerSample, sizeof(int16_t), 1, audioFile);
+	fread(&m_AudioFileHeader.bitsPerSample, sizeof(int16_t), 1, audioFile);
+
+	fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
+	if(m_AudioFileHeader.riff == 1414744396 /* Non null terminated "LIST" string */) {
+		fprintf(stderr, "Parsing through LIST...\n");
+
+		uint32_t sizeToSkip = 0;
+		fread(&sizeToSkip, sizeof(uint32_t), 1, audioFile);
+		fprintf(stderr, "Skipping %u bytes...\n", sizeToSkip);
+		fseek(audioFile, sizeToSkip, SEEK_CUR);
+
+		fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
+	}
+	if(m_AudioFileHeader.riff != 1635017060 /* Non null terminated "data" string */) {
+		fprintf(stderr, "The file isn't WAV! (No 'data' found)\n");
+		m_Window.Close();
+		return;
+	}
+
+	fread(&m_AudioFileHeader.dataSize, sizeof(uint32_t), 1, audioFile);
+	fprintf(stderr, "Reading %u bytes of WAVE data...\n", m_AudioFileHeader.dataSize);
+
+	// Here's where the data parsing begins
+	m_AudioFileData.resize(m_AudioFileHeader.dataSize);
+	fread(m_AudioFileData.data(), sizeof(unsigned char), m_AudioFileHeader.dataSize, audioFile);
+	/***
+	 * 	WAVE AUDIO FILE LOADING END
+	***/
+
+	m_ALCDev = alcOpenDevice(nullptr);
+	if(m_ALCDev == nullptr) {
+		fprintf(stderr, "Failed to initialise OpenAL!\n");
+		m_Window.Close();
+		return;
+	}
+
+	m_ALCCtx = alcCreateContext(m_ALCDev, nullptr);
+	alcMakeContextCurrent(m_ALCCtx);
+	if(m_ALCDev == nullptr) {
+		fprintf(stderr, "Failed to create an OpenAL context!\n");
+		m_Window.Close();
+		return;
+	}
+
+	ALuint frequency = m_AudioFileHeader.sampleRate;
+	ALenum format    = 0;
+
+	alGenBuffers(1, m_ALBuffers);
+	alGenSources(1, m_ALSources);
+
+	// you may ask why
+	// for i am lazy
+	// thus i tasked myself with finding an easier way
+	// and came up with something that took even longer
+	format = 0x1100;
+	format += ((m_AudioFileHeader.channels - 1 ) * 2) + ((m_AudioFileHeader.bitsPerSample / 8) - 1);
+
+	if(format == AL_FORMAT_MONO8) {
+		std::cout << "MONO8\n";
+	}
+	else if(format == AL_FORMAT_MONO16) {
+		std::cout << "MONO16\n";
+	}
+	else if(format == AL_FORMAT_STEREO8) {
+		std::cout << "STEREO8\n";
+	}
+	else if(format == AL_FORMAT_STEREO16) {
+		std::cout << "STEREO16\n";
+	}
+	else {
+		std::cout << "Unknown Format!\n";
+	}
+
+	alBufferData(m_ALBuffers[0], format, m_AudioFileData.data(), m_AudioFileHeader.dataSize, frequency);
+
+	alSourcei(m_ALSources[0], AL_BUFFER, m_ALBuffers[0]);
+	alSourcei(m_ALSources[0], AL_LOOPING, true);
+	alSourcePlay(m_ALSources[0]);
 }
 
 void App::Update() {
@@ -189,6 +309,8 @@ void App::Update() {
 	}
 	Math::Mat4 identity = m_Projection * m_Transform;
 	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(identity)[0]);
+
+	alSource3f(m_ALSources[0], AL_POSITION, m_Rotation.y, 0.0f, m_Rotation.x);
 
 	m_Mesh.Bind();
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

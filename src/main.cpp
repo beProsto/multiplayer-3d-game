@@ -1,8 +1,15 @@
 #include "app.hpp"
 
 int Main(const std::vector<std::string>& _args) {
+	#ifdef WIN32
+	if(AllocConsole()) {
+		FILE* fi = 0;
+		freopen_s(&fi, "CONOUT$", "w", stdout);
+	}
+	#endif
+	
 	OWL::GLContext context;
-	OWL::Window window(&context);
+	OWL::Window window(&context, "Ekran Tytulowy ;3");
 	window.SetMaxGamepads(0);
 	
 	// Initialise GLAD	

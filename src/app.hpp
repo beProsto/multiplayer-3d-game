@@ -1,16 +1,29 @@
 #pragma once
 
 #include <glad/glad.h>
+
 #include <OWL/OWL.hpp>
 #include <OWL/time.hpp>
 #include <OWL/GLContext.hpp>
-#include "math/math.hpp"
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
+#include "math/math.hpp"
 #include "rendering/mesh.hpp"
 
 struct Vertex {
 	float x, y, z;
 	float i, j, k;
+};
+
+struct WAVHeader {
+	uint32_t riff;
+	uint32_t size, chunkSize;
+	int16_t formatType, channels;
+	uint32_t sampleRate, avgBytesPerSec;
+	int16_t bytesPerSample, bitsPerSample;
+	uint32_t dataSize;
 };
 
 class App {
@@ -38,10 +51,13 @@ protected:
 	OWL::Vec2f m_LastPosition;
 	OWL::Vec2f m_Rotation;
 
-	// ALCdevice *m_ALCDev;
-	// ALCcontext *m_ALCCtx;
-	// ALuint m_ALBuffers[1];
-	// ALuint m_ALSources[1];
+	WAVHeader m_AudioFileHeader;
+	std::vector<unsigned char> m_AudioFileData;
+
+	ALCdevice* m_ALCDev;
+	ALCcontext* m_ALCCtx;
+	ALuint m_ALBuffers[1];
+	ALuint m_ALSources[1];
 
 
 	Mesh m_Mesh;
