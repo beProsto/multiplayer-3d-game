@@ -7,23 +7,6 @@ m_Window(_window) {
 App::~App() {
 }
 
-// #define M_TAU (M_PI * 2.0)
-// #define SAMPLE_RATE 44100
-// #define SINE_FREQ 440
-// #define ORBIT_PERIOD 3
-// #define ORBITS 10
-// #define ORBIT_DISTANCE 2.0f
-
-// int checkForAlErrors(void) {
-// 	ALenum error = alGetError();
-// 	if (error == AL_NO_ERROR) {
-// 		return 0;
-// 	} else {
-// 		fprintf(stderr, "Error: %04X\n", error);
-// 		return 1;
-// 	}
-// }
-
 void App::Start() {
 	glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
 
@@ -105,65 +88,9 @@ void App::Start() {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	m_LastPosition = m_Window.Mouse.GetPosition();
+	m_Camera.SetTranslation(Math::Vec3(0.0f, 0.0f, 1.0f));
 
-	m_Scale = -2.0f;
-
-	// OPENAL
-	
-	// ALCdevice *dev = alcOpenDevice(NULL);
-	// if (!dev) {
-	// 	fprintf(stderr, "Unable to open default device\n");
-	// 	m_Window.Close();
-	// }
-
-	// ALCcontext *ctx = alcCreateContext(dev, NULL);
-	// if (!ctx) {
-	// 	fprintf(stderr, "Unable to create context\n");
-	// 	m_Window.Close();
-	// }
-
-	// alcMakeContextCurrent(ctx);
-	// if (checkForAlErrors()) {
-	// 	fprintf(stderr, "Unable to make context current\n");
-	// 	m_Window.Close();
-	// }
-
-	// ALuint buffers[1];
-	// alGenBuffers(sizeof(buffers) / sizeof(*buffers), buffers);
-	// if (checkForAlErrors()) {
-	// 	fprintf(stderr, "Unable to generate buffers\n");
-	// 	m_Window.Close();
-	// }
-
-	// ALuint sources[1];
-	// alGenSources(sizeof(sources) / sizeof(*sources), sources);
-	// if (checkForAlErrors()) {
-	// 	fprintf(stderr, "Unable to generate sources\n");
-	// 	m_Window.Close();
-	// }
-
-	// int16_t sineData[SAMPLE_RATE / SINE_FREQ];
-	// for (size_t i = 0; i < SAMPLE_RATE / SINE_FREQ; ++i) {
-	// 	sineData[i] = sin(i * M_TAU * SINE_FREQ / SAMPLE_RATE) * INT16_MAX;
-	// }
-
-	// alBufferData(buffers[0], AL_FORMAT_MONO16, sineData, sizeof(sineData), SAMPLE_RATE);
-	// if (checkForAlErrors()) {
-	// 	fprintf(stderr, "Unable to set buffer data\n");
-	// 	m_Window.Close();
-	// }
-
-	// alSourcei(sources[0], AL_BUFFER, buffers[0]);
-	// if (checkForAlErrors()) {
-	// 	fprintf(stderr, "Unable to attach buffer to source\n");
-	// 	m_Window.Close();
-	// }
-
-	// alSourcei(sources[0], AL_LOOPING, AL_TRUE);
-
-	// alSourcePlay(sources[0]);
-
+	m_Window.Mouse.SetVisibility(false);
 
 	/***
 	 * 	WAVE AUDIO FILE LOADING BEGIN
@@ -298,19 +225,39 @@ void App::Update() {
 	glViewport(0, 0, m_Window.GetSize().x, m_Window.GetSize().y);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	m_Scale += m_Window.Mouse.GetWheelRotation() / 1000.0f;
-	m_Projection = Math::Mat4::Perspective(M_PI/2.0f, m_Window.GetAspect(), 0.1f, 100.0f) * Math::Mat4::Translate(0.0f, 0.0f, m_Scale);
-	OWL::Vec2f thisPosition = m_Window.Mouse.GetPosition();
-	OWL::Vec2f diff = thisPosition - m_LastPosition;
-	m_LastPosition = thisPosition;
-	if(m_Window.Mouse.IsButtonPressed(OWL::Window::MouseEvent::Left)) {
-		m_Rotation += OWL::Vec2f(diff.y, diff.x) * OWL::Vec2f(0.01f);
-		m_Transform = Math::Mat4::RotateX(m_Rotation.x) * Math::Mat4::RotateY(m_Rotation.y);
-	}
-	Math::Mat4 identity = m_Projection * m_Transform;
-	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(identity)[0]);
+	m_Camera.SetAspectRatio(m_Window.GetAspect());
 
-	alSource3f(m_ALSources[0], AL_POSITION, m_Rotation.y, 0.0f, m_Rotation.x);
+	OWL::Vec2ui windowCenter = m_Window.GetSize() / OWL::Vec2ui(2);
+	OWL::Vec2f mouse = m_Window.Mouse.GetPosition() - windowCenter;
+	mouse *= OWL::Vec2f(0.01f);
+	m_Window.Mouse.SetPosition(windowCenter);
+
+	Math::Vec3 rotation = m_Camera.GetRotation() - Math::Vec3(mouse.y, mouse.x, 0.0f);
+	rotation.x = max(min(rotation.x, M_PI/2.0), -M_PI/2.0);
+	m_Camera.SetRotation(rotation);
+
+	float movementX = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::D) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::A);
+	float movementZ = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::S) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::W);
+
+	float velX = cos(m_Camera.GetRotation().y) * movementX + sin(m_Camera.GetRotation().y) * movementZ;
+	float velZ = sin(m_Camera.GetRotation().y) * -movementX + cos(m_Camera.GetRotation().y) * movementZ;
+
+	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, 0.0f, velZ) * 0.1f);
+
+	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(m_Camera.GetMatrix())[0]);
+
+	Math::Vec3 translation = m_Camera.GetTranslation();
+	Math::Mat4 m = m_Camera.GetMatrix();
+	Math::Vec3 up = Math::Vec3(m[4], m[5], m[6]);
+	Math::Vec3 front = Math::Vec3(m[8], m[9], m[10]); 
+
+	float ori[6] = {
+		front.x, front.y, front.z,
+		up.x, up.y, up.z
+	};
+	
+	alListenerfv(AL_ORIENTATION, ori);
+	alListener3f(AL_POSITION, translation.x, translation.y, translation.z);
 
 	m_Mesh.Bind();
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

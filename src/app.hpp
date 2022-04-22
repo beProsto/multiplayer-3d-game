@@ -12,6 +12,8 @@
 #include "math/math.hpp"
 #include "rendering/mesh.hpp"
 
+#include "camera.hpp"
+
 struct Vertex {
 	float x, y, z;
 	float i, j, k;
@@ -45,11 +47,13 @@ protected:
 	// unsigned int m_VertexArray;
 	unsigned int m_ShaderProgram;
 	
-	float m_Scale;
-	Math::Mat4 m_Transform;
-	Math::Mat4 m_Projection;
-	OWL::Vec2f m_LastPosition;
-	OWL::Vec2f m_Rotation;
+	// float m_Scale;
+	// Math::Mat4 m_Transform;
+	// Math::Mat4 m_Projection;
+	// OWL::Vec2f m_LastPosition;
+	// OWL::Vec2f m_Rotation;
+
+	Camera m_Camera;
 
 	WAVHeader m_AudioFileHeader;
 	std::vector<unsigned char> m_AudioFileData;

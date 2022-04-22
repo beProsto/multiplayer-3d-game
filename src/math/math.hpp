@@ -8,6 +8,7 @@
 #endif/*M_PI*/
 
 #include "vec4.hpp"
+#include "vec3.hpp"
 #include "mat4.hpp"
 
 /* Math Operations */
