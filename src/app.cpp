@@ -321,18 +321,14 @@ void App::Update(float _dt) {
 	alListenerfv(AL_ORIENTATION, ori);
 	alListener3f(AL_POSITION, translation.x, translation.y, translation.z);
 	
-
-	
 	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(m_Camera.GetProjMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f, 0.04f, -0.04f)).GetMatrix())[0]);
 	m_MeshTexture.Bind(0);
-	m_Mesh.Bind();
-	glDrawElements(GL_TRIANGLES, m_Mesh.GetIndexCount(), GL_UNSIGNED_INT, 0);
+	m_Mesh.Draw();
 
 	
 	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(m_Camera.GetMatrix())[0]);
 	m_BaseTexture.Bind(0);
-	m_Plane.Bind();
-	glDrawElements(GL_TRIANGLES, m_Plane.GetIndexCount(), GL_UNSIGNED_INT, 0);
+	m_Plane.Draw();
 
 	m_Context.SwapBuffers();
 }

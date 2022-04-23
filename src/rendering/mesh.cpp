@@ -42,3 +42,9 @@ void Mesh::SupplyArray(unsigned int _location, unsigned int _stride, const std::
 	
 	m_ABs.push_back(arrayBuffer);
 }
+
+
+void Mesh::Draw() const {
+	Bind();
+	glDrawElements(GL_TRIANGLES, GetIndexCount(), GL_UNSIGNED_INT, 0);
+}

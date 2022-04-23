@@ -15,6 +15,8 @@ public:
 
 	void Bind() const;
 
+	void Draw() const;
+
 protected:
 	unsigned int m_VAO;
 	unsigned int m_IB;
