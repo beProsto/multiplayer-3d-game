@@ -20,6 +20,10 @@ namespace Math {
 			z = (_other.z);
 		}
 
+		static Vec3 Normalise(const Vec3& _v) {
+			return _v / sqrtf(_v.x*_v.x + _v.y*_v.y + _v.z*_v.z);
+		}
+
 		float& operator[](size_t _i) {
 			return *(((float*)this)+_i);
 		}

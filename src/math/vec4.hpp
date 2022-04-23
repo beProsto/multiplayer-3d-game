@@ -25,6 +25,10 @@ namespace Math {
 			w = (_other.w);
 		}
 
+		static Vec4 Normalise(const Vec4& _v) {
+			return _v / sqrtf(_v.x*_v.x + _v.y*_v.y + _v.z*_v.z + _v.w*_v.w);
+		}
+
 		float& operator[](size_t _i) {
 			return *(((float*)this)+_i);
 		}

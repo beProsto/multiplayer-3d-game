@@ -19,10 +19,12 @@ endif
 OWL_INCLUDE = -Iext/OWL/include
 GLAD_INCLUDE = -Iext/glad/include
 OPENAL_INCLUDE = -Iext/openal-soft/include
+STB_INCLUDE = -Iext/stb/include
 
 OWL_FLAGS = $(OWL_INCLUDE) $(LINK_OWL) $(OWL_LIB_FILE)
 GLAD_FLAGS = $(GLAD_INCLUDE)
 OPENAL_FLAGS = $(OPENAL_INCLUDE) $(OPENAL_LIB_FILE)
+STB_FLAGS = $(STB_INCLUDE)
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -37,10 +39,10 @@ run: $(EXE)
 	./$(EXE)
 
 $(EXE): $(OBJS) objs/glad.o $(OWL_LIB_FILE)
-	$(CXX) $(OBJS) objs/glad.o $(OWL_FLAGS) $(GLAD_FLAGS) $(OPENAL_FLAGS) $(CXX_FLAGS) -o $(EXE)
+	$(CXX) $(OBJS) objs/glad.o $(OWL_FLAGS) $(GLAD_FLAGS) $(OPENAL_FLAGS) $(STB_FLAGS) $(CXX_FLAGS) -o $(EXE)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HDRS)
-	$(CXX) $(word 1, $^) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(OPENAL_INCLUDE) $(CXX_FLAGS) -c -o $@
+	$(CXX) $(word 1, $^) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(OPENAL_INCLUDE) $(STB_INCLUDE) $(CXX_FLAGS) -c -o $@
 
 objs/glad.o: ext/glad/src/glad.c
 	$(CC) ext/glad/src/glad.c $(GLAD_FLAGS) $(CC_FLAGS) -c -o objs/glad.o

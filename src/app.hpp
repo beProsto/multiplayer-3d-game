@@ -11,6 +11,7 @@
 
 #include "math/math.hpp"
 #include "rendering/mesh.hpp"
+#include "rendering/texture.hpp"
 
 #include "camera.hpp"
 
@@ -34,7 +35,7 @@ public:
 	~App();
 
 	void Start();
-	void Update();
+	void Update(float _dt);
 
 protected:
 	OWL::GLContext& m_Context;
@@ -63,6 +64,11 @@ protected:
 	ALuint m_ALBuffers[1];
 	ALuint m_ALSources[1];
 
+	bool m_IsMouseLocked;
 
+	Texture m_BaseTexture;
+	Texture m_MeshTexture;
+
+	Mesh m_Plane;
 	Mesh m_Mesh;
 };

@@ -21,6 +21,15 @@ public:
 		RecalcMat();
 		return m_Mat;
 	}
+	const Math::Mat4& GetProjMatrix() {
+		RecalcProj();
+		return m_Proj;
+	}
+	const Math::Mat4& GetViewMatrix() {
+		RecalcView();
+		return m_View;
+	}
+
 
 	void SetTranslation(const Math::Vec3& _translation) {
 		if(m_Translation != _translation) {
