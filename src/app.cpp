@@ -2,11 +2,22 @@
 
 #include "rendering/loaderOBJ.hpp"
 
+#include "transform.hpp"
+
 App::App(OWL::Window& _window, OWL::GLContext& _context):
 m_Context(_context),
 m_Window(_window) {
 }
 App::~App() {
+}
+
+void d_printm4(Math::Mat4 m) {
+	printf("< MATRIX X x X >\n");
+	printf("%f, %f, %f, %f\n", m[0], m[1], m[2], m[3]);
+	printf("%f, %f, %f, %f\n", m[4], m[5], m[6], m[7]);
+	printf("%f, %f, %f, %f\n", m[8], m[9], m[10], m[11]);
+	printf("%f, %f, %f, %f\n", m[12], m[13], m[14], m[15]);
+	printf("---------------\n");
 }
 
 void App::Start() {
@@ -276,8 +287,7 @@ void App::Update(float _dt) {
 	float velZ = sin(m_Camera.GetRotation().y) * -movementX + cos(m_Camera.GetRotation().y) * movementZ;
 
 	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, 0.0f, velZ) * _dt * 10.0f);
-
-	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(m_Camera.GetMatrix())[0]);
+	
 
 	Math::Vec3 translation = m_Camera.GetTranslation();
 
@@ -300,8 +310,8 @@ void App::Update(float _dt) {
 	Math::Vec3 upNorm = Math::Vec3::Normalise(Math::Vec3(up.x,up.y,up.z));
 	Math::Vec3 frNorm = Math::Vec3::Normalise(Math::Vec3(front.x,front.y,front.z));
 
-	printf("<>FRONT:%f,%f,%f\n", frNorm.x, frNorm.y, frNorm.z);
-	printf("<>UPWRD:%f,%f,%f\n", upNorm.x, upNorm.y, upNorm.z);
+	// printf("<>FRONT:%f,%f,%f\n", frNorm.x, frNorm.y, frNorm.z);
+	// printf("<>UPWRD:%f,%f,%f\n", upNorm.x, upNorm.y, upNorm.z);
 
 	float ori[6] = {
 		frNorm.x, frNorm.y, frNorm.z,
@@ -311,10 +321,15 @@ void App::Update(float _dt) {
 	alListenerfv(AL_ORIENTATION, ori);
 	alListener3f(AL_POSITION, translation.x, translation.y, translation.z);
 	
+
+	
+	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(m_Camera.GetProjMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f, 0.04f, -0.04f)).GetMatrix())[0]);
 	m_MeshTexture.Bind(0);
 	m_Mesh.Bind();
 	glDrawElements(GL_TRIANGLES, m_Mesh.GetIndexCount(), GL_UNSIGNED_INT, 0);
 
+	
+	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(m_Camera.GetMatrix())[0]);
 	m_BaseTexture.Bind(0);
 	m_Plane.Bind();
 	glDrawElements(GL_TRIANGLES, m_Plane.GetIndexCount(), GL_UNSIGNED_INT, 0);

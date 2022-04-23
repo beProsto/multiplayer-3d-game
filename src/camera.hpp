@@ -11,6 +11,7 @@ public:
 		m_AspectRatio = _aspectRatio;
 		m_RecalcProj = true;
 		m_RecalcView = true;
+		m_RecalcMat = true;
 		RecalcMat();
 	}
 	~Camera() {
@@ -80,6 +81,7 @@ private:
 		m_Proj = Math::Mat4::Perspective(m_FieldOfView, m_AspectRatio, 0.01f, 1000.0f);
 
 		m_RecalcProj = false;
+		m_RecalcMat = true;
 
 		// std::cout << "Camera: Proj Matrix recalc!\n";
 
@@ -97,19 +99,22 @@ private:
 		);
 
 		m_RecalcView = false;
+		m_RecalcMat = true;
 
 		// std::cout << "Camera: View Matrix recalc!\n";
 	}
 
 	void RecalcMat() {
-		if(!m_RecalcView && !m_RecalcProj) {
-			return;
-		}
-
 		RecalcProj();
 		RecalcView();
 
+		if(!m_RecalcMat) {
+			return;
+		}
+
 		m_Mat = m_Proj * m_View;
+
+		m_RecalcMat = false;
 
 		// std::cout << "Camera: Full Matrix recalc!\n";
 	}
@@ -128,4 +133,5 @@ private:
 
 	bool m_RecalcView;
 	bool m_RecalcProj;
+	bool m_RecalcMat;
 };
