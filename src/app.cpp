@@ -43,17 +43,24 @@ void App::Start() {
 		+1.0f, 0.0f, -1.0f
 	});
 
-	LoaderOBJ::Model model = LoaderOBJ::Load("assets/beryla.obj");
+	LoaderOBJ::Model model = LoaderOBJ::Load("assets/beryl.obj");
 	m_Mesh.SupplyIndices(model.indices);
 	m_Mesh.SupplyArray(0, 3, model.positions);
 	m_Mesh.SupplyArray(1, 2, model.texcoords);
 	m_Mesh.SupplyArray(2, 3, model.normals);
+
+	model = LoaderOBJ::Load("assets/map_mntns.obj");
+	m_Map.SupplyIndices(model.indices);
+	m_Map.SupplyArray(0, 3, model.positions);
+	m_Map.SupplyArray(1, 2, model.texcoords);
+	m_Map.SupplyArray(2, 3, model.normals);
 
 	unsigned char white[4] = {0xFF, 0xFF, 0xFF, 0xFF};
 	m_BaseTexture.LoadFromData(white, 1, 1);
 
 	m_MeshTexture.LoadFromFile("assets/beryl.png");
 
+	m_MapTexture.LoadFromFile("assets/map_mntns.png");
 
 	std::string vertexShaderSource = R"V0G0N(#version 330 core
 		layout(location = 0) in vec3 a_pos;
@@ -61,24 +68,39 @@ void App::Start() {
 		layout(location = 2) in vec3 a_nor;
 		
 		out vec2 v_tex;
+		out vec3 v_nor;
 
+		uniform mat4 u_cam;
 		uniform mat4 u_mat;
 
 		void main() {
-			gl_Position = u_mat * vec4(a_pos, 1.0);
+			gl_Position = u_cam * u_mat * vec4(a_pos, 1.0);
 			v_tex = a_tex;
 			v_tex.y = 1.0 - v_tex.y;
+			v_nor = (u_mat * vec4(a_nor, 1.0)).xyz - (u_mat * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 		}
 	)V0G0N";
 	std::string fragmentShaderSource = R"V0G0N(#version 330 core
 		in vec2 v_tex;
+		in vec3 v_nor;
 
 		layout(location = 0) out vec4 col;
 
 		uniform sampler2D u_texid;
 
+		uniform vec3 u_lightcolor;
+		uniform float u_lightambient;
+		uniform vec3 u_lightdir;
+
 		void main() {
-			col = texture(u_texid, v_tex);
+			vec3 res = texture(u_texid, v_tex).rgb;
+			
+			vec3 ambient = u_lightcolor * u_lightambient;
+
+			vec3 diffuse = u_lightcolor * max(dot(normalize(-u_lightdir), normalize(v_nor)), 0.0); 
+
+			res *= ambient + diffuse;
+			col = vec4(res, 1.0);
 		}
 	)V0G0N";
 
@@ -126,6 +148,9 @@ void App::Start() {
 	glUniform1i(glGetUniformLocation(m_ShaderProgram, "u_texid"), 0);
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 
 	m_Camera.SetTranslation(Math::Vec3(0.0f, 0.0f, 1.0f));
 
@@ -256,6 +281,9 @@ void App::Start() {
 void App::Update(float _dt) {
 	// Debugging
 	if(m_Window.Keyboard.GetKeyData().KeyEnum == OWL::Window::KeyboardEvent::Escape) {
+		m_Window.Close();
+	}
+	if(m_Window.Keyboard.GetKeyData().KeyEnum == OWL::Window::KeyboardEvent::BackQuote) {
 		m_Window.Mouse.SetVisibility(!m_Window.Mouse.IsVisible());
 		m_IsMouseLocked = !m_IsMouseLocked;
 	}
@@ -275,7 +303,7 @@ void App::Update(float _dt) {
 		mouse *= OWL::Vec2f(0.01f);
 		m_Window.Mouse.SetPosition(windowCenter);
 
-		Math::Vec3 rotation = m_Camera.GetRotation() - Math::Vec3(mouse.y, mouse.x, 0.0f) * 0.5f;
+		Math::Vec3 rotation = m_Camera.GetRotation() - Math::Vec3(mouse.y, mouse.x, 0.0f) * 0.3f;
 		rotation.x = max(min(rotation.x, M_PI/2.0), -M_PI/2.0);
 		m_Camera.SetRotation(rotation);
 	}
@@ -286,9 +314,8 @@ void App::Update(float _dt) {
 	float velX = cos(m_Camera.GetRotation().y) * movementX + sin(m_Camera.GetRotation().y) * movementZ;
 	float velZ = sin(m_Camera.GetRotation().y) * -movementX + cos(m_Camera.GetRotation().y) * movementZ;
 
-	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, 0.0f, velZ) * _dt * 10.0f);
+	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, 0.0f, velZ) * _dt * 30.0f);
 	
-
 	Math::Vec3 translation = m_Camera.GetTranslation();
 
 	Math::Vec4 stand = m_Camera.GetViewMatrix() * Math::Vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -320,15 +347,25 @@ void App::Update(float _dt) {
 	
 	alListenerfv(AL_ORIENTATION, ori);
 	alListener3f(AL_POSITION, translation.x, translation.y, translation.z);
+
+	glUniform3f(glGetUniformLocation(m_ShaderProgram, "u_lightcolor"), 1.0f, 1.0f, 1.0f);
+	glUniform1f(glGetUniformLocation(m_ShaderProgram, "u_lightambient"), 0.1f);
+	glUniform3f(glGetUniformLocation(m_ShaderProgram, "u_lightdir"), -1.0f, -1.0f, 0.0f);
 	
-	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(m_Camera.GetProjMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f, 0.04f, -0.04f)).GetMatrix())[0]);
+	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_cam"), 1, GL_FALSE, &(m_Camera.GetMatrix())[0]);
+
+	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(Transform(Math::Vec3(translation), m_Camera.GetRotation()).GetMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f)).GetMatrix())[0]);
 	m_MeshTexture.Bind(0);
 	m_Mesh.Draw();
 
-	
-	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(m_Camera.GetMatrix())[0]);
+	Math::Mat4 identity;
+	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(identity)[0]);
 	m_BaseTexture.Bind(0);
 	m_Plane.Draw();
+
+	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(Math::Mat4::Translate(0.0f, -2.5f, 0.0f)*Math::Mat4::Scale(5.0f))[0]);
+	m_MapTexture.Bind(0);
+	m_Map.Draw();
 
 	m_Context.SwapBuffers();
 }

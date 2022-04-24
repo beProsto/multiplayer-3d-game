@@ -36,5 +36,6 @@ int Main(const std::vector<std::string>& _args) {
 		// std::cout << (float)(ms/1000.0f) << std::endl;
 		// limit.End();
 	}
+	// system("PAUSE");
 	return 0;
 }

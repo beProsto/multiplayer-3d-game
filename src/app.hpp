@@ -67,8 +67,10 @@ protected:
 	bool m_IsMouseLocked;
 
 	Texture m_BaseTexture;
+	Texture m_MapTexture;
 	Texture m_MeshTexture;
 
 	Mesh m_Plane;
+	Mesh m_Map;
 	Mesh m_Mesh;
 };
