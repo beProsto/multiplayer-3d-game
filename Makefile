@@ -2,7 +2,8 @@ CC = clang
 CXX = clang++
 AR = llvm-ar
 
-CXX_FLAGS = -std=c++17 -Wall -Wpedantic
+CXX_FLAGS = -std=c++17 -Wall -Wpedantic -O3
+CC_FLAGS = -O3
 
 ifeq ($(OS),Windows_NT)
 EXE = app.exe

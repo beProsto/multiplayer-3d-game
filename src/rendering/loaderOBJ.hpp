@@ -15,7 +15,7 @@ struct Model {
 	std::vector<float> normals;
 };
 
-Model Load(const std::string& _filename) {
+inline Model Load(const std::string& _filename) {
     std::fstream file(_filename);
 
     if(!file.is_open()) {

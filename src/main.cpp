@@ -11,7 +11,7 @@ int Main(const std::vector<std::string>& _args) {
 	#endif
 	
 	OWL::GLContext context;
-	OWL::Window window(&context, "Ekran Tytulowy ;3");
+	OWL::Window window(&context, "Multiplayer 3D Gaem ^^");
 	window.SetMaxGamepads(0);
 	
 	// Initialise GLAD	

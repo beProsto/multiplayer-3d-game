@@ -1,8 +1,8 @@
 #include "app.hpp"
 
 #include "rendering/loaderOBJ.hpp"
+#include "audio/loaderWAV.hpp"
 
-#include "transform.hpp"
 
 App::App(OWL::Window& _window, OWL::GLContext& _context):
 m_Context(_context),
@@ -158,124 +158,23 @@ void App::Start() {
 
 	m_IsMouseLocked = true;
 
+	m_LightTranform = Transform(Math::Vec3(), Math::Vec3(), Math::Vec3());
+
 	/***
-	 * 	WAVE AUDIO FILE LOADING BEGIN
+	 * 	WAVE AUDIO FILE LOADING
 	***/
-	FILE* audioFile = fopen("assets/audio.wav", "rb");
-
-	if(audioFile == nullptr) {
-		fprintf(stderr, "The file couldn't be loaded!\n");
-		m_Window.Close();
-		return;
-	}
-	
-	fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
-	if(m_AudioFileHeader.riff != 1179011410 /* Non null terminated "RIFF" string */) {
-		fprintf(stderr, "The file isn't WAV! (No 'RIFF' found)\n");
-		m_Window.Close();
-		return;
-	}
-
-	fread(&m_AudioFileHeader.size, sizeof(uint32_t), 1, audioFile);
-
-	fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
-	if(m_AudioFileHeader.riff != 1163280727 /* Non null terminated "WAVE" string */) {
-		fprintf(stderr, "The file isn't WAV! (No 'WAVE' found)\n");
-		m_Window.Close();
-		return;
-	}
-
-	fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
-	if(m_AudioFileHeader.riff != 544501094 /* Non null terminated "fmt " string */) {
-		fprintf(stderr, "The file isn't WAV! (No 'fmt ' found)\n");
-		m_Window.Close();
-		return;
-	}
-
-	fread(&m_AudioFileHeader.chunkSize, sizeof(uint32_t), 1, audioFile);
-	fread(&m_AudioFileHeader.formatType, sizeof(int16_t), 1, audioFile);
-	fread(&m_AudioFileHeader.channels, sizeof(int16_t), 1, audioFile);
-	fread(&m_AudioFileHeader.sampleRate, sizeof(uint32_t), 1, audioFile);
-	fread(&m_AudioFileHeader.avgBytesPerSec, sizeof(uint32_t), 1, audioFile);
-	fread(&m_AudioFileHeader.bytesPerSample, sizeof(int16_t), 1, audioFile);
-	fread(&m_AudioFileHeader.bitsPerSample, sizeof(int16_t), 1, audioFile);
-
-	fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
-	if(m_AudioFileHeader.riff == 1414744396 /* Non null terminated "LIST" string */) {
-		fprintf(stderr, "Parsing through LIST...\n");
-
-		uint32_t sizeToSkip = 0;
-		fread(&sizeToSkip, sizeof(uint32_t), 1, audioFile);
-		fprintf(stderr, "Skipping %u bytes...\n", sizeToSkip);
-		fseek(audioFile, sizeToSkip, SEEK_CUR);
-
-		fread(&m_AudioFileHeader.riff, sizeof(uint32_t), 1, audioFile);
-	}
-	if(m_AudioFileHeader.riff != 1635017060 /* Non null terminated "data" string */) {
-		fprintf(stderr, "The file isn't WAV! (No 'data' found)\n");
-		m_Window.Close();
-		return;
-	}
-
-	fread(&m_AudioFileHeader.dataSize, sizeof(uint32_t), 1, audioFile);
-	fprintf(stderr, "Reading %u bytes of WAVE data...\n", m_AudioFileHeader.dataSize);
-
-	// Here's where the data parsing begins
-	m_AudioFileData.resize(m_AudioFileHeader.dataSize);
-	fread(m_AudioFileData.data(), sizeof(unsigned char), m_AudioFileHeader.dataSize, audioFile);
-	/***
-	 * 	WAVE AUDIO FILE LOADING END
-	***/
-
-	m_ALCDev = alcOpenDevice(nullptr);
-	if(m_ALCDev == nullptr) {
-		fprintf(stderr, "Failed to initialise OpenAL!\n");
-		m_Window.Close();
-		return;
-	}
-
-	m_ALCCtx = alcCreateContext(m_ALCDev, nullptr);
-	alcMakeContextCurrent(m_ALCCtx);
-	if(m_ALCDev == nullptr) {
-		fprintf(stderr, "Failed to create an OpenAL context!\n");
-		m_Window.Close();
-		return;
-	}
-
-	ALuint frequency = m_AudioFileHeader.sampleRate;
-	ALenum format    = 0;
+	AudioData audio = LoaderWAV::Load("assets/audio.wav");
 
 	alGenBuffers(1, m_ALBuffers);
 	alGenSources(1, m_ALSources);
 
-	// you may ask why
-	// for i am lazy
-	// thus i tasked myself with finding an easier way
-	// and came up with something that took even longer
-	format = 0x1100;
-	format += ((m_AudioFileHeader.channels - 1 ) * 2) + ((m_AudioFileHeader.bitsPerSample / 8) - 1);
-
-	if(format == AL_FORMAT_MONO8) {
-		std::cout << "MONO8\n";
-	}
-	else if(format == AL_FORMAT_MONO16) {
-		std::cout << "MONO16\n";
-	}
-	else if(format == AL_FORMAT_STEREO8) {
-		std::cout << "STEREO8\n";
-	}
-	else if(format == AL_FORMAT_STEREO16) {
-		std::cout << "STEREO16\n";
-	}
-	else {
-		std::cout << "Unknown Format!\n";
-	}
-
-	alBufferData(m_ALBuffers[0], format, m_AudioFileData.data(), m_AudioFileHeader.dataSize, frequency);
+	alBufferData(m_ALBuffers[0], audio.format, audio.data.data(), audio.data.size(), audio.frequency);
 
 	alSourcei(m_ALSources[0], AL_BUFFER, m_ALBuffers[0]);
 	alSourcei(m_ALSources[0], AL_LOOPING, true);
 	alSourcePlay(m_ALSources[0]);
+
+	alDistanceModel(AL_EXPONENT_DISTANCE);
 }
 
 void App::Update(float _dt) {
@@ -310,47 +209,24 @@ void App::Update(float _dt) {
 
 	float movementX = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::D) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::A);
 	float movementZ = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::S) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::W);
+	float movementY = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::Space) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::ShiftLeft);
 
 	float velX = cos(m_Camera.GetRotation().y) * movementX + sin(m_Camera.GetRotation().y) * movementZ;
 	float velZ = sin(m_Camera.GetRotation().y) * -movementX + cos(m_Camera.GetRotation().y) * movementZ;
 
-	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, 0.0f, velZ) * _dt * 30.0f);
+	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, movementY, velZ) * _dt * 30.0f);
 	
 	Math::Vec3 translation = m_Camera.GetTranslation();
-
-	Math::Vec4 stand = m_Camera.GetViewMatrix() * Math::Vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	// stand /= stand.w;
-	Math::Vec4 up = m_Camera.GetViewMatrix() * Math::Vec4(0.0f, 1.0f, 0.0f, 1.0f);
-	// up /= up.w;
-	Math::Vec4 front = m_Camera.GetViewMatrix() * Math::Vec4(0.0f, 0.0f, -1.0f, 1.0f);
-	// front /= front.w;
-
-	up = up - stand;
-	front = front - stand;
-
-	// float faceX = sin(m_Camera.GetRotation().y) * -1.0f;
-	// float faceZ = cos(m_Camera.GetRotation().y) * -1.0f;
-
-	// Math::Vec3 upNorm = Math::Vec3::Normalise(Math::Vec3(0.0f,1.0f,0.0f));
-	// Math::Vec3 frNorm = Math::Vec3::Normalise(Math::Vec3(faceX,0.0f,faceZ));
-
-	Math::Vec3 upNorm = Math::Vec3::Normalise(Math::Vec3(up.x,up.y,up.z));
-	Math::Vec3 frNorm = Math::Vec3::Normalise(Math::Vec3(front.x,front.y,front.z));
-
-	// printf("<>FRONT:%f,%f,%f\n", frNorm.x, frNorm.y, frNorm.z);
-	// printf("<>UPWRD:%f,%f,%f\n", upNorm.x, upNorm.y, upNorm.z);
-
-	float ori[6] = {
-		frNorm.x, frNorm.y, frNorm.z,
-		upNorm.x, upNorm.y, upNorm.z
-	};
 	
-	alListenerfv(AL_ORIENTATION, ori);
-	alListener3f(AL_POSITION, translation.x, translation.y, translation.z);
+	m_Audio.SetListener(translation, m_Camera.GetRotation());
+
+	m_LightTranform.Translation.z += _dt;
+	m_LightTranform.Translation.x = sin(m_LightTranform.Translation.z)*2.0f-1.0f;
+	m_LightTranform.Translation.y = cos(m_LightTranform.Translation.z)*2.0f-1.0f;
 
 	glUniform3f(glGetUniformLocation(m_ShaderProgram, "u_lightcolor"), 1.0f, 1.0f, 1.0f);
 	glUniform1f(glGetUniformLocation(m_ShaderProgram, "u_lightambient"), 0.1f);
-	glUniform3f(glGetUniformLocation(m_ShaderProgram, "u_lightdir"), -1.0f, -1.0f, 0.0f);
+	glUniform3f(glGetUniformLocation(m_ShaderProgram, "u_lightdir"), m_LightTranform.Translation.x, -1.0f, m_LightTranform.Translation.y);
 	
 	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_cam"), 1, GL_FALSE, &(m_Camera.GetMatrix())[0]);
 
