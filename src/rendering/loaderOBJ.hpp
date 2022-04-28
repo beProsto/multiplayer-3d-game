@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <strstream>
+#include <assert.h>
 
 #include "../math/math.hpp"
 

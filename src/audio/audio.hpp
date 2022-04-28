@@ -1,24 +1,33 @@
 #pragma once
 
-#include <AL/al.h>
-#include <AL/alc.h>
-
 #include "audiodata.hpp"
 
 #include "../math/math.hpp"
 
-class AudioBuffer {
-public:
-	AudioBuffer();
-	~AudioBuffer();
-};
-
+struct AudioSourceImpl;
 class AudioSource {
 public:
 	AudioSource();
 	~AudioSource();
+
+	void SetData(const AudioData& _data);
+
+	void SetLooped(bool _looped);
+
+	bool IsLooped() const;
+
+	void Play();
+	void Stop();
+	void Pause();
+
+protected:
+	// ALuint m_ALBuffer;
+	// ALuint m_ALSource;
+	AudioSourceImpl* m_Impl;
+	bool m_Looped;
 };
 
+struct AudioManagerImpl;
 class AudioManager {
 public:
 	AudioManager();
@@ -27,6 +36,7 @@ public:
 	void SetListener(Math::Vec3 _translation, Math::Vec3 _rotation);
 
 protected:
-	ALCdevice* m_ALCDev;
-	ALCcontext* m_ALCCtx;
+	// ALCdevice* m_ALCDev;
+	// ALCcontext* m_ALCCtx;
+	AudioManagerImpl* m_Impl;
 };

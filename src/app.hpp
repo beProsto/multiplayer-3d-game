@@ -10,10 +10,7 @@
 #include <AL/alc.h>
 
 #include "math/math.hpp"
-#include "rendering/mesh.hpp"
-#include "rendering/texture.hpp"
-
-#include "camera.hpp"
+#include "rendering/renderer.hpp"
 
 #include "transform.hpp"
 
@@ -36,13 +33,12 @@ protected:
 	OWL::GLContext& m_Context;
 	OWL::Window& m_Window;
 
-	unsigned int m_ShaderProgram;
-
 	Camera m_Camera;
+	Light m_SunLight;
+	Renderer m_Renderer;
 
 	AudioManager m_Audio;
-	ALuint m_ALBuffers[1];
-	ALuint m_ALSources[1];
+	AudioSource m_Sound;
 
 	bool m_IsMouseLocked;
 	Transform m_LightTranform;
@@ -54,4 +50,6 @@ protected:
 	Mesh m_Plane;
 	Mesh m_Map;
 	Mesh m_Mesh;
+	
+	Math::Mat4 m_Identity;
 };

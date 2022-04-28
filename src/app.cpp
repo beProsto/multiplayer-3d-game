@@ -1,8 +1,6 @@
 #include "app.hpp"
 
-#include "rendering/loaderOBJ.hpp"
 #include "audio/loaderWAV.hpp"
-
 
 App::App(OWL::Window& _window, OWL::GLContext& _context):
 m_Context(_context),
@@ -21,8 +19,6 @@ void d_printm4(Math::Mat4 m) {
 }
 
 void App::Start() {
-	glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
-
 	m_Plane.SupplyIndices({0, 1, 2, 2, 3, 0});
 	m_Plane.SupplyArray(0, 3, {
 		-1.0f, -2.0f, -1.0f,
@@ -57,124 +53,27 @@ void App::Start() {
 
 	unsigned char white[4] = {0xFF, 0xFF, 0xFF, 0xFF};
 	m_BaseTexture.LoadFromData(white, 1, 1);
-
 	m_MeshTexture.LoadFromFile("assets/beryl.png");
-
 	m_MapTexture.LoadFromFile("assets/map_mntns.png");
-
-	std::string vertexShaderSource = R"V0G0N(#version 330 core
-		layout(location = 0) in vec3 a_pos;
-		layout(location = 1) in vec2 a_tex;
-		layout(location = 2) in vec3 a_nor;
-		
-		out vec2 v_tex;
-		out vec3 v_nor;
-
-		uniform mat4 u_cam;
-		uniform mat4 u_mat;
-
-		void main() {
-			gl_Position = u_cam * u_mat * vec4(a_pos, 1.0);
-			v_tex = a_tex;
-			v_tex.y = 1.0 - v_tex.y;
-			v_nor = (u_mat * vec4(a_nor, 1.0)).xyz - (u_mat * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-		}
-	)V0G0N";
-	std::string fragmentShaderSource = R"V0G0N(#version 330 core
-		in vec2 v_tex;
-		in vec3 v_nor;
-
-		layout(location = 0) out vec4 col;
-
-		uniform sampler2D u_texid;
-
-		uniform vec3 u_lightcolor;
-		uniform float u_lightambient;
-		uniform vec3 u_lightdir;
-
-		void main() {
-			vec3 res = texture(u_texid, v_tex).rgb;
-			
-			vec3 ambient = u_lightcolor * u_lightambient;
-
-			vec3 diffuse = u_lightcolor * max(dot(normalize(-u_lightdir), normalize(v_nor)), 0.0); 
-
-			res *= ambient + diffuse;
-			col = vec4(res, 1.0);
-		}
-	)V0G0N";
-
-	std::cout << "SHADER SOURCE CODE:\n" << vertexShaderSource << std::endl << fragmentShaderSource << std::endl;
-
-	char* vertexShaderSourcePointer = &vertexShaderSource[0];
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSourcePointer, NULL);
-	glCompileShader(vertexShader);
-	int  success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if(!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "Vertex Shader Compilation error!\n" << infoLog << std::endl;
-		m_Window.Close();
-	}
-
-	char* fragmentShaderSourcePointer = &fragmentShaderSource[0];
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSourcePointer, NULL);
-	glCompileShader(fragmentShader);
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if(!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "Fragment Shader Compilation error!\n" << infoLog << std::endl;
-		m_Window.Close();
-	}
-
-	m_ShaderProgram = glCreateProgram();
-	glAttachShader(m_ShaderProgram, vertexShader);
-	glAttachShader(m_ShaderProgram, fragmentShader);
-	glLinkProgram(m_ShaderProgram);
-	glGetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
-	if(!success) {
-		glGetProgramInfoLog(m_ShaderProgram, 512, NULL, infoLog);
-		std::cout << "Shader Program Linking error!\n" << infoLog << std::endl;
-		m_Window.Close();
-	}
-	glUseProgram(m_ShaderProgram);
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-	glUniform1i(glGetUniformLocation(m_ShaderProgram, "u_texid"), 0);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
 
 	m_Camera.SetTranslation(Math::Vec3(0.0f, 0.0f, 1.0f));
 
 	m_Window.Mouse.SetVisibility(false);
-
 	m_IsMouseLocked = true;
 
 	m_LightTranform = Transform(Math::Vec3(), Math::Vec3(), Math::Vec3());
+	m_SunLight = Light{Math::Vec3(1.0f, 1.0f, 1.0f), 0.1f, Math::Vec3(m_LightTranform.Translation.x, -1.0f, m_LightTranform.Translation.y)};
+
+	m_Renderer.SetSceneLight(m_SunLight);
+	m_Renderer.SetSceneCamera(m_Camera);
 
 	/***
 	 * 	WAVE AUDIO FILE LOADING
 	***/
 	AudioData audio = LoaderWAV::Load("assets/audio.wav");
-
-	alGenBuffers(1, m_ALBuffers);
-	alGenSources(1, m_ALSources);
-
-	alBufferData(m_ALBuffers[0], audio.format, audio.data.data(), audio.data.size(), audio.frequency);
-
-	alSourcei(m_ALSources[0], AL_BUFFER, m_ALBuffers[0]);
-	alSourcei(m_ALSources[0], AL_LOOPING, true);
-	alSourcePlay(m_ALSources[0]);
-
-	alDistanceModel(AL_EXPONENT_DISTANCE);
+	m_Sound.SetData(audio);
+	m_Sound.SetLooped(true);
+	m_Sound.Play();
 }
 
 void App::Update(float _dt) {
@@ -189,12 +88,6 @@ void App::Update(float _dt) {
 	if(m_Window.Keyboard.GetKeyData().KeyEnum == OWL::Window::KeyboardEvent::F11) {
 		m_Window.SetFullScreen(!m_Window.IsFullScreen());
 	}
-
-	// Makeshift rendering for now;
-	glViewport(0, 0, m_Window.GetSize().x, m_Window.GetSize().y);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	m_Camera.SetAspectRatio(m_Window.GetAspect());
 
 	if(m_IsMouseLocked) {
 		OWL::Vec2ui windowCenter = m_Window.GetSize() / OWL::Vec2ui(2);
@@ -215,33 +108,25 @@ void App::Update(float _dt) {
 	float velZ = sin(m_Camera.GetRotation().y) * -movementX + cos(m_Camera.GetRotation().y) * movementZ;
 
 	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, movementY, velZ) * _dt * 30.0f);
-	
+
 	Math::Vec3 translation = m_Camera.GetTranslation();
-	
+
 	m_Audio.SetListener(translation, m_Camera.GetRotation());
 
-	m_LightTranform.Translation.z += _dt;
+	m_LightTranform.Translation.z += _dt/5.0f;
 	m_LightTranform.Translation.x = sin(m_LightTranform.Translation.z)*2.0f-1.0f;
 	m_LightTranform.Translation.y = cos(m_LightTranform.Translation.z)*2.0f-1.0f;
+	m_SunLight.direction = Math::Vec3(m_LightTranform.Translation.x, -1.0f, m_LightTranform.Translation.y);
 
-	glUniform3f(glGetUniformLocation(m_ShaderProgram, "u_lightcolor"), 1.0f, 1.0f, 1.0f);
-	glUniform1f(glGetUniformLocation(m_ShaderProgram, "u_lightambient"), 0.1f);
-	glUniform3f(glGetUniformLocation(m_ShaderProgram, "u_lightdir"), m_LightTranform.Translation.x, -1.0f, m_LightTranform.Translation.y);
-	
-	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_cam"), 1, GL_FALSE, &(m_Camera.GetMatrix())[0]);
 
-	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(Transform(Math::Vec3(translation), m_Camera.GetRotation()).GetMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f)).GetMatrix())[0]);
-	m_MeshTexture.Bind(0);
-	m_Mesh.Draw();
+	// Makeshift rendering for now;
+	m_Renderer.BeginScene(m_Window.GetSize().x, m_Window.GetSize().y, m_Window.GetAspect());
 
-	Math::Mat4 identity;
-	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(identity)[0]);
-	m_BaseTexture.Bind(0);
-	m_Plane.Draw();
+	m_Renderer.Draw(m_Renderer.basic, m_Mesh, m_MeshTexture, Transform(translation, m_Camera.GetRotation()).GetMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f)).GetMatrix());
 
-	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "u_mat"), 1, GL_FALSE, &(Math::Mat4::Translate(0.0f, -2.5f, 0.0f)*Math::Mat4::Scale(5.0f))[0]);
-	m_MapTexture.Bind(0);
-	m_Map.Draw();
+	m_Renderer.Draw(m_Renderer.basic, m_Plane, m_BaseTexture, m_Identity);
+
+	m_Renderer.Draw(m_Renderer.inv, m_Map, m_MapTexture, Math::Mat4::Translate(0.0f, -2.5f, 0.0f) * Math::Mat4::Scale(5.0f));
 
 	m_Context.SwapBuffers();
 }

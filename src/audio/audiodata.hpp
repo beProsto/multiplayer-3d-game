@@ -6,5 +6,5 @@
 struct AudioData {
 	uint32_t frequency;
 	int32_t format;
-	std::vector<unsigned char> data;
+	std::vector<uint8_t> data;
 };
