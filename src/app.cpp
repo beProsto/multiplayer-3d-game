@@ -9,14 +9,14 @@ m_Window(_window) {
 App::~App() {
 }
 
-void d_printm4(Math::Mat4 m) {
-	printf("< MATRIX X x X >\n");
-	printf("%f, %f, %f, %f\n", m[0], m[1], m[2], m[3]);
-	printf("%f, %f, %f, %f\n", m[4], m[5], m[6], m[7]);
-	printf("%f, %f, %f, %f\n", m[8], m[9], m[10], m[11]);
-	printf("%f, %f, %f, %f\n", m[12], m[13], m[14], m[15]);
-	printf("---------------\n");
-}
+// void d_printm4(Math::Mat4 m) {
+// 	printf("< MATRIX X x X >\n");
+// 	printf("%f, %f, %f, %f\n", m[0], m[1], m[2], m[3]);
+// 	printf("%f, %f, %f, %f\n", m[4], m[5], m[6], m[7]);
+// 	printf("%f, %f, %f, %f\n", m[8], m[9], m[10], m[11]);
+// 	printf("%f, %f, %f, %f\n", m[12], m[13], m[14], m[15]);
+// 	printf("---------------\n");
+// }
 
 void App::Start() {
 	m_Plane.SupplyIndices({0, 1, 2, 2, 3, 0});
@@ -122,11 +122,11 @@ void App::Update(float _dt) {
 	// Makeshift rendering for now;
 	m_Renderer.BeginScene(m_Window.GetSize().x, m_Window.GetSize().y, m_Window.GetAspect());
 
-	m_Renderer.Draw(m_Renderer.basic, m_Mesh, m_MeshTexture, Transform(translation, m_Camera.GetRotation()).GetMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f)).GetMatrix());
+	m_Renderer.Draw(Renderer::ShaderType::basic, m_Mesh, m_MeshTexture, Transform(translation, m_Camera.GetRotation()).GetMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f)).GetMatrix());
 
-	m_Renderer.Draw(m_Renderer.basic, m_Plane, m_BaseTexture, m_Identity);
+	m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, m_Identity);
 
-	m_Renderer.Draw(m_Renderer.inv, m_Map, m_MapTexture, Math::Mat4::Translate(0.0f, -2.5f, 0.0f) * Math::Mat4::Scale(5.0f));
+	m_Renderer.Draw(Renderer::ShaderType::basic, m_Map, m_MapTexture, Math::Mat4::Translate(0.0f, -2.5f, 0.0f) * Math::Mat4::Scale(5.0f));
 
 	m_Context.SwapBuffers();
 }
