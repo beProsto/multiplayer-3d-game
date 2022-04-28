@@ -103,15 +103,11 @@ void App::Update(float _dt) {
 	float movementX = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::D) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::A);
 	float movementZ = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::S) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::W);
 	float movementY = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::Space) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::ShiftLeft);
-
 	float velX = cos(m_Camera.GetRotation().y) * movementX + sin(m_Camera.GetRotation().y) * movementZ;
 	float velZ = sin(m_Camera.GetRotation().y) * -movementX + cos(m_Camera.GetRotation().y) * movementZ;
-
 	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, movementY, velZ) * _dt * 30.0f);
 
-	Math::Vec3 translation = m_Camera.GetTranslation();
-
-	m_Audio.SetListener(translation, m_Camera.GetRotation());
+	m_Audio.SetListener(m_Camera.GetTranslation(), m_Camera.GetRotation());
 
 	m_LightTranform.Translation.z += _dt/5.0f;
 	m_LightTranform.Translation.x = sin(m_LightTranform.Translation.z)*2.0f-1.0f;
@@ -122,7 +118,7 @@ void App::Update(float _dt) {
 	// Makeshift rendering for now;
 	m_Renderer.BeginScene(m_Window.GetSize().x, m_Window.GetSize().y, m_Window.GetAspect());
 
-	m_Renderer.Draw(Renderer::ShaderType::basic, m_Mesh, m_MeshTexture, Transform(translation, m_Camera.GetRotation()).GetMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f)).GetMatrix());
+	m_Renderer.Draw(Renderer::ShaderType::basic, m_Mesh, m_MeshTexture, Transform(m_Camera.GetTranslation(), m_Camera.GetRotation()).GetMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f)).GetMatrix());
 
 	m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, m_Identity);
 
