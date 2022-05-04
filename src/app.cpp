@@ -21,10 +21,10 @@ App::~App() {
 void App::Start() {
 	m_Plane.SupplyIndices({0, 1, 2, 2, 3, 0});
 	m_Plane.SupplyArray(0, 3, {
-		-1.0f, -2.0f, -1.0f,
-		-1.0f, -2.0f, +1.0f,
-		+1.0f, -2.0f, +1.0f,
-		+1.0f, -2.0f, -1.0f
+		-1.0f, -1.9f, -1.0f,
+		-1.0f, -1.9f, +1.0f,
+		+1.0f, -1.9f, +1.0f,
+		+1.0f, -1.9f, -1.0f
 	});
 	m_Plane.SupplyArray(1, 2, {
 		0.0f, 0.0f,
@@ -120,9 +120,9 @@ void App::Update(float _dt) {
 
 	m_Renderer.Draw(Renderer::ShaderType::basic, m_Mesh, m_MeshTexture, Transform(m_Camera.GetTranslation(), m_Camera.GetRotation()).GetMatrix() * Transform(Math::Vec3(0.05f, -0.06f, -0.1f), Math::Vec3(), Math::Vec3(0.04f)).GetMatrix());
 
-	m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, m_Identity);
-
 	m_Renderer.Draw(Renderer::ShaderType::basic, m_Map, m_MapTexture, Math::Mat4::Translate(0.0f, -2.5f, 0.0f) * Math::Mat4::Scale(5.0f));
+
+	m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, m_Identity);
 
 	m_Context.SwapBuffers();
 }
