@@ -1,6 +1,6 @@
 /*** 
  * This file implements stb libraries, 
- * so that they can be used throught 
+ * so that they can be used throughout 
  * multiple other source files without
  * linking errors.
 ***/
