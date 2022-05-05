@@ -8,7 +8,7 @@ CC_FLAGS = -O3
 
 ifeq ($(OS),Windows_NT)
 EXE = app.exe
-LINK_OWL = -lopengl32 -lglu32 -lgdi32 -luser32 -lcomctl32 -lkernel32 -lshell32 -lxinput
+LINK_OWL = -lopengl32 -lglu32 -lgdi32 -luser32 -lcomctl32 -lkernel32 -lshell32 -lxinput -lws2_32 -lmswsock -ladvapi32
 OWL_LIB_FILE = ext/OWL/build/OWL.lib
 OPENAL_LIB_FILE = ext/openal-soft/build/Release/OpenAL32.lib
 RES = app.res
