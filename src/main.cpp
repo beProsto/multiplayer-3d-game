@@ -1,15 +1,15 @@
 #include "app.hpp"
 #include <chrono>
 
+#define DEBUG
 
 int Main(const std::vector<std::string>& _args) {
-	#ifdef WIN32
+	#if defined(WIN32) && defined(DEBUG)
 	if(AllocConsole()) {
 		FILE* fi = 0;
 		freopen_s(&fi, "CONOUT$", "w", stdout);
 	}
 	#endif
-	
 	OWL::GLContext context;
 	OWL::Window window(&context, "Multiplayer 3D Gaem ^^");
 	window.SetMaxGamepads(0);

@@ -3,3 +3,5 @@ app.exe
 *.exe
 *.dll
 *.o
+
+*.res

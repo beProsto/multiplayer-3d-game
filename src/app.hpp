@@ -6,9 +6,6 @@
 #include <OWL/time.hpp>
 #include <OWL/GLContext.hpp>
 
-#include <AL/al.h>
-#include <AL/alc.h>
-
 #include "math/math.hpp"
 #include "rendering/renderer.hpp"
 
