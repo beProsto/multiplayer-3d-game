@@ -5,9 +5,9 @@ Using GLAD instead of GLEW makes the project free of any dll files, additionally
 
 Current roadmap:
 1. ~~Windowing~~
-2. Graphics
+2. ~~Graphics~~
 3. Assimp
-4. OpenAL ( [https://github.com/xiph/vorbis](https://github.com/xiph/vorbis) this also ) 
+4. ~~OpenAL~~ ( [https://github.com/xiph/vorbis](https://github.com/xiph/vorbis) this also ) 
 5. Networking
 
 
