@@ -1,6 +1,7 @@
 CC = clang
 CXX = clang++
 AR = llvm-ar
+WINDRES = windres
 
 CXX_FLAGS = -std=c++17 -Wall -Wpedantic -O3
 CC_FLAGS = -O3
@@ -10,11 +11,13 @@ EXE = app.exe
 LINK_OWL = -lopengl32 -lglu32 -lgdi32 -luser32 -lcomctl32 -lkernel32 -lshell32 -lxinput
 OWL_LIB_FILE = ext/OWL/build/OWL.lib
 OPENAL_LIB_FILE = ext/openal-soft/build/Release/OpenAL32.lib
+RES = app.res
 else
 EXE = app
 LINK_OWL = -lX11 -lGL -lGLX
 OWL_LIB_FILE = ext/OWL/build/libOWL.a
 OPENAL_LIB_FILE = ext/openal-soft/build/Release/libOpenAL32.a
+RES = 
 endif
 
 OWL_INCLUDE = -Iext/OWL/include
@@ -39,8 +42,8 @@ OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 run: $(EXE)
 	./$(EXE)
 
-$(EXE): $(OBJS) objs/glad.o $(OWL_LIB_FILE)
-	$(CXX) $(OBJS) objs/glad.o $(OWL_FLAGS) $(GLAD_FLAGS) $(OPENAL_FLAGS) $(STB_FLAGS) $(CXX_FLAGS) -o $(EXE)
+$(EXE): $(OBJS) objs/glad.o $(OWL_LIB_FILE) $(RES)
+	$(CXX) $(OBJS) objs/glad.o $(RES) $(OWL_FLAGS) $(GLAD_FLAGS) $(OPENAL_FLAGS) $(STB_FLAGS) $(CXX_FLAGS) -o $(EXE)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HDRS)
 	$(CXX) $(word 1, $^) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(OPENAL_INCLUDE) $(STB_INCLUDE) $(CXX_FLAGS) -c -o $@
@@ -48,9 +51,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HDRS)
 objs/glad.o: ext/glad/src/glad.c
 	$(CC) ext/glad/src/glad.c $(GLAD_FLAGS) $(CC_FLAGS) -c -o objs/glad.o
 
+app.res: app.rc
+	$(WINDRES) app.rc -O coff -o app.res
+
 $(OWL_LIB_FILE):
 	cd ext & cd OWL & cd build & make justlibrary CC=$(CC) CXX=$(CXX) AR=$(AR)
-
 
 clean:
 	-rm $(EXE)
