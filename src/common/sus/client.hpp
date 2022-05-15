@@ -47,6 +47,10 @@ public:
 		return m_Connected;
 	}
 
+	SOCKET GetId() const {
+		return m_ID;
+	}
+
 	void Disconnect() {
 		m_Connected = false;
 	}

@@ -23,6 +23,11 @@ App::~App() {
 struct PositionalMessage {
 	SOCKET Id;
 	Math::Vec3 Position;
+	Math::Vec3 Rotation;
+};
+struct PositionalSemd {
+	Math::Vec3 Position;
+	Math::Vec3 Rotation;
 };
 
 void App::Start() {
@@ -58,6 +63,12 @@ void App::Start() {
 	m_Map.SupplyArray(1, 2, model.texcoords);
 	m_Map.SupplyArray(2, 3, model.normals);
 
+	model = LoaderOBJ::Load("assets/robot.obj");
+	m_Robot.SupplyIndices(model.indices);
+	m_Robot.SupplyArray(0, 3, model.positions);
+	m_Robot.SupplyArray(1, 2, model.texcoords);
+	m_Robot.SupplyArray(2, 3, model.normals);
+
 	unsigned char white[4] = {0xFF, 0xFF, 0xFF, 0xFF};
 	m_BaseTexture.LoadFromData(white, 1, 1);
 	m_MeshTexture.LoadFromFile("assets/beryl.png");
@@ -85,7 +96,7 @@ void App::Start() {
 	m_NetworkThreadRunning = true;
 	m_NetworkThread = std::thread([&]() {
 		// Networking
-		Math::Vec3 lastTrans;
+		PositionalSemd lastPos;
 		while(m_NetworkThreadRunning) {
 			if(!m_Network.IsConnected()) {
 				m_Network.Connect();
@@ -94,19 +105,30 @@ void App::Start() {
 			else {
 				using namespace std::chrono_literals;
 				std::this_thread::sleep_for(16ms);
+				
 				m_Network.Update();
+
 				SUS::Event event;
 				while(m_Network.PollEvent(event)) {
 					if(event.Message.Protocol == SUS::Protocol::UDP && event.Message.Size == sizeof(PositionalMessage)) {
 						PositionalMessage msg = SUS_CAST_DATA(PositionalMessage, event.Message.Data);
-						m_PlayersPositions[msg.Id] = msg.Position;
+						if(msg.Id != m_Network.GetId()) {
+							m_PlayersPositions[msg.Id].x = msg.Position.x;
+							m_PlayersPositions[msg.Id].y = msg.Position.y;
+							m_PlayersPositions[msg.Id].z = msg.Position.z;
+							
+							m_PlayersPositions[msg.Id].i = msg.Rotation.x;
+							m_PlayersPositions[msg.Id].j = msg.Rotation.y;
+							m_PlayersPositions[msg.Id].k = msg.Rotation.z;
+						}
 						// std::cout << m_PlayersPositions[msg.Id].x << " " << m_PlayersPositions[msg.Id].y << " " << m_PlayersPositions[msg.Id].z << "\n";
 					}
 				}
 
-				if(m_Camera.GetTranslation() != lastTrans) {
-					lastTrans = m_Camera.GetTranslation();
-					m_Network.Send(lastTrans, SUS::Protocol::UDP);
+				if(m_Camera.GetTranslation() != lastPos.Position || m_Camera.GetRotation() != lastPos.Rotation) {
+					lastPos.Position = m_Camera.GetTranslation();
+					lastPos.Rotation = m_Camera.GetRotation();
+					m_Network.Send(lastPos, SUS::Protocol::UDP);
 				}
 			}
 		}
@@ -166,7 +188,7 @@ void App::Update(float _dt) {
 	m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, m_Identity);
 
 	for(auto& pos : m_PlayersPositions) {
-		m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, Math::Mat4::Translate(pos.second.x, pos.second.y, pos.second.z));
+		m_Renderer.Draw(Renderer::ShaderType::inv, m_Robot, m_BaseTexture, Transform(Math::Vec3(pos.second.x, pos.second.y - 4.5f, pos.second.z), Math::Vec3(pos.second.i, pos.second.j, pos.second.k)).GetMatrix());
 	}
 
 	m_Context.SwapBuffers();

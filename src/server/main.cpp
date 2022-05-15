@@ -10,6 +10,7 @@
 struct PositionalMessage {
 	SOCKET Id;
 	Math::Vec3 Position;
+	Math::Vec3 Rotation;
 };
 
 int main(int argc, char** argv) {
@@ -40,6 +41,7 @@ int main(int argc, char** argv) {
 				case SUS::EventType::MessageReceived: {
 					if(event.Message.Protocol == SUS::Protocol::UDP) {
 						Math::Vec3 position = SUS_CAST_DATA(Math::Vec3, event.Message.Data);
+						Math::Vec3 rotation = SUS_CAST_DATA(Math::Vec3, event.Message.Data+sizeof(Math::Vec3));
 						
 						std::cout << event.Message.ClientId << " [ " << position.x << ", " << position.y << ", " << position.z <<  " ]\n";
 						
@@ -48,6 +50,7 @@ int main(int argc, char** argv) {
 						PositionalMessage pm;
 						pm.Id = event.Message.ClientId;
 						pm.Position = position;
+						pm.Rotation = rotation;
 						
 						server.Send(pm, SUS::Protocol::UDP);
 					}

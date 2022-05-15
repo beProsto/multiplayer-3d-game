@@ -38,7 +38,7 @@ protected:
 	bool m_NetworkThreadRunning;
 	std::thread m_NetworkThread;
 	
-	std::unordered_map<SOCKET, Math::Vec3> m_PlayersPositions;
+	std::unordered_map<SOCKET, Vertex> m_PlayersPositions;
 
 	Camera m_Camera;
 	Light m_SunLight;
@@ -57,6 +57,7 @@ protected:
 	Mesh m_Plane;
 	Mesh m_Map;
 	Mesh m_Mesh;
+	Mesh m_Robot;
 	
 	Math::Mat4 m_Identity;
 };
