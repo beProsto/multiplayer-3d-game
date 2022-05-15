@@ -8,14 +8,14 @@ CC_FLAGS = -O3
 
 ifeq ($(OS),Windows_NT)
 SRV = server.exe
-EXE = app.exe
+EXE = game.exe
 LINK_OWL = -lopengl32 -lglu32 -lgdi32 -luser32 -lcomctl32 -lkernel32 -lshell32 -lxinput -lws2_32 -lmswsock -ladvapi32
 OWL_LIB_FILE = ext/OWL/build/OWL.lib
 OPENAL_LIB_FILE = ext/openal-soft/build/Release/OpenAL32.lib
 RES = app.res
 else
 SRV = server
-EXE = app
+EXE = game
 LINK_OWL = -lX11 -lGL -lGLX
 OWL_LIB_FILE = ext/OWL/build/libOWL.a
 OPENAL_LIB_FILE = ext/openal-soft/build/Release/libOpenAL32.a
@@ -50,7 +50,7 @@ OBJS_SRVR = $(SRCS_SRVR:$(SRC_SRVR_DIR)/%.cpp=$(OBJ_SRVR_DIR)/%.o)
 HDRS = $(call rwildcard,$(SRC_DIR),*.hpp)
 
 run: $(EXE) $(SRV)
-	start $(SRV) & start $(EXE)
+	start $(EXE) & $(SRV) 
 
 $(SRV): $(OBJS_SRVR) $(RES)
 	$(CXX) $(OBJS_SRVR) $(RES) $(LINK_OWL) $(CXX_FLAGS) -o $(SRV)
