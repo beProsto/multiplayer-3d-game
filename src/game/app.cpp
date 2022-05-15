@@ -63,7 +63,7 @@ void App::Start() {
 	m_IsMouseLocked = true;
 
 	m_LightTranform = Transform(Math::Vec3(), Math::Vec3(), Math::Vec3());
-	m_SunLight = Light{Math::Vec3(1.0f, 1.0f, 1.0f), 0.1f, Math::Vec3(m_LightTranform.Translation.x, -1.0f, m_LightTranform.Translation.y)};
+	m_SunLight = Light{Math::Vec3(1.0f, 1.0f, 1.0f), 0.5f, Math::Vec3(m_LightTranform.Translation.x, -1.0f, m_LightTranform.Translation.y)};
 
 	m_Renderer.SetSceneLight(m_SunLight);
 	m_Renderer.SetSceneCamera(m_Camera);
@@ -83,8 +83,6 @@ void App::Start() {
 			if(!m_Network.IsConnected()) {
 				m_Network.Connect();
 				std::cout << "Not yet hast we connected" << "\n";
-				using namespace std::chrono_literals;
-				std::this_thread::sleep_for(1000ms);
 			}
 			else {
 				using namespace std::chrono_literals;

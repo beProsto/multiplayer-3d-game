@@ -20,7 +20,7 @@ int Main(const std::vector<std::string>& _args) {
 	SUS::Client network(networkHostAddress);
 
 	OWL::GLContext context;
-	OWL::Window window(&context, "Multiplayer 3D Gaem ^^");
+	OWL::Window window(&context, "Multiplayer 3D Gaem ^^", OWL::Vec2(0), OWL::Vec2ui(1280, 720));
 	window.SetMaxGamepads(0);
 	
 	// Initialise GLAD	

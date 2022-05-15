@@ -11,18 +11,25 @@ public:
 	Server(const std::string& _port = SUS_DEFAULT_PORT) {
 		m_Port = _port;
 
-		m_TCPConnection.Create(nullptr, m_Port.c_str(), Internal::Connection::Type::TCP);
-		m_UDPConnection.Create(nullptr, m_Port.c_str(), Internal::Connection::Type::UDP);
-		// printf("Socket opened..\n");
+		m_Init = new Internal::Initialiser();
+		m_TCPConnection = new Internal::Connection();
+		m_UDPConnection = new Internal::Connection();
 
-		m_TCPConnection.MakeNonBlocking();
-		m_UDPConnection.MakeNonBlocking();
+		m_TCPConnection->Create(nullptr, m_Port.c_str(), Internal::Connection::Type::TCP);
+		m_UDPConnection->Create(nullptr, m_Port.c_str(), Internal::Connection::Type::UDP);
 
-		m_TCPConnection.MakeListen();
-		m_UDPConnection.MakeListen();
+		m_TCPConnection->MakeNonBlocking();
+		m_UDPConnection->MakeNonBlocking();
+
+		m_TCPConnection->MakeListen();
+		m_UDPConnection->MakeListen();
+
+		SUS_DEB("Sockets opened\n");
 	}
 	~Server() {
-
+		delete m_TCPConnection;
+		delete m_UDPConnection;
+		delete m_Init;
 	}
 	
 	void Update() {
@@ -43,10 +50,10 @@ public:
 		else {
 			for(uint32_t i = 0; i < m_Clients.size(); i++) {
 				sendto(
-					m_UDPConnection.GetSocket(), 
+					m_UDPConnection->GetSocket(), 
 					(const char*)serialised.GetData(), 4 + _data.Size,
 					0, (sockaddr*)&m_Clients[i].UDP,
-					(int)m_UDPConnection.GetAddrInfo()->ai_addrlen
+					(int)m_UDPConnection->GetAddrInfo()->ai_addrlen
 				);
 			}
 		}
@@ -56,7 +63,7 @@ protected:
 	void UpdateClients() {
 		SOCKET clientSocket;
 		while(true) {
-			clientSocket = accept(m_TCPConnection.GetSocket(), nullptr, nullptr);
+			clientSocket = accept(m_TCPConnection->GetSocket(), nullptr, nullptr);
 			if(clientSocket == INVALID_SOCKET) {
 				break;
 			}
@@ -87,7 +94,7 @@ protected:
 		while(true) {
 			sockaddr_in udpInfo = {};
 			int udpInfoLen = sizeof(udpInfo);
-			int udpBytesReceived = recvfrom(m_UDPConnection.GetSocket(), recvbuf, BUFFER_LEN, 0, (sockaddr*)&udpInfo, &udpInfoLen);
+			int udpBytesReceived = recvfrom(m_UDPConnection->GetSocket(), recvbuf, BUFFER_LEN, 0, (sockaddr*)&udpInfo, &udpInfoLen);
 
 			if(udpBytesReceived > 0) {
 				// Stringify udp client info
@@ -166,9 +173,9 @@ protected:
 	std::vector<Internal::Socket> m_Clients;
 	std::unordered_map<std::string, SOCKET> m_UDPMap;
 
-	Internal::Connection m_TCPConnection;
-	Internal::Connection m_UDPConnection;
-	Internal::Initialiser m_Init;
+	Internal::Connection* m_TCPConnection;
+	Internal::Connection* m_UDPConnection;
+	Internal::Initialiser* m_Init;
 };
 
 }

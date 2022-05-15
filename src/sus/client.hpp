@@ -25,8 +25,8 @@ public:
 		SUS_DEB("Socket opened\n");
 	}
 	~Client() {
-		delete m_UDPConnection;
 		delete m_TCPConnection;
+		delete m_UDPConnection;
 		delete m_Init;
 	}
 

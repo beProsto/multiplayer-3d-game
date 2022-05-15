@@ -50,8 +50,7 @@ OBJS_SRVR = $(SRCS_SRVR:$(SRC_SRVR_DIR)/%.cpp=$(OBJ_SRVR_DIR)/%.o)
 HDRS = $(call rwildcard,$(SRC_DIR),*.hpp)
 
 run: $(EXE) $(SRV)
-	./$(EXE)
-	./$(SRV)
+	start $(SRV) & start $(EXE)
 
 $(SRV): $(OBJS_SRVR) $(RES)
 	$(CXX) $(OBJS_SRVR) $(RES) $(LINK_OWL) $(CXX_FLAGS) -o $(SRV)
