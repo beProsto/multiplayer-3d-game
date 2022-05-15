@@ -79,20 +79,22 @@ void App::Start() {
 	m_NetworkThreadRunning = true;
 	m_NetworkThread = std::thread([&]() {
 		// Networking
-		while(!m_Network.IsConnected() && m_NetworkThreadRunning) {
-			using namespace std::chrono_literals;
-			std::this_thread::sleep_for(500ms);
-			m_Network.Connect();
-			std::cout << "Not yet hast we connected" << "\n";
-		}
 		while(m_NetworkThreadRunning) {
-			using namespace std::chrono_literals;
-			std::this_thread::sleep_for(20ms);
-			m_Network.Update();
-			SUS::Event event;
-			while(m_Network.PollEvent(event)) {
-				std::cout << "AJJJJJJ MSESASGE" << "\n";
-				m_Network.Send(32);
+			if(!m_Network.IsConnected()) {
+				m_Network.Connect();
+				std::cout << "Not yet hast we connected" << "\n";
+				using namespace std::chrono_literals;
+				std::this_thread::sleep_for(1000ms);
+			}
+			else {
+				using namespace std::chrono_literals;
+				std::this_thread::sleep_for(20ms);
+				m_Network.Update();
+				SUS::Event event;
+				while(m_Network.PollEvent(event)) {
+					std::cout << "AJJJJJJ MSESASGE" << "\n";
+					m_Network.Send(32);
+				}
 			}
 		}
 	});

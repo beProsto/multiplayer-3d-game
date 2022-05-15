@@ -38,7 +38,6 @@ int Main(const std::vector<std::string>& _args) {
 		double ms = std::chrono::duration<double, std::milli>(timeNow-timeLast).count();
 		timeLast = timeNow;
 		
-		network.Update();
 		window.PollEvents();
 		app.Update(ms/1000.0f);
 	}
