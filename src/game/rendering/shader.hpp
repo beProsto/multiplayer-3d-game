@@ -4,7 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "../math/math.hpp"
+#include "../../common/math/math.hpp"
 
 class Shader {
 public:

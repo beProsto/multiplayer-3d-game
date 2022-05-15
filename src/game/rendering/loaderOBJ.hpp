@@ -5,7 +5,7 @@
 #include <strstream>
 #include <assert.h>
 
-#include "../math/math.hpp"
+#include "../../common/math/math.hpp"
 
 namespace LoaderOBJ {
 

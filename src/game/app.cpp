@@ -19,6 +19,12 @@ App::~App() {
 // 	printf("---------------\n");
 // }
 
+#define SUS_CAST_DATA(t, d) *(t*)d
+struct PositionalMessage {
+	SOCKET Id;
+	Math::Vec3 Position;
+};
+
 void App::Start() {
 	m_Plane.SupplyIndices({0, 1, 2, 2, 3, 0});
 	m_Plane.SupplyArray(0, 3, {
@@ -79,6 +85,7 @@ void App::Start() {
 	m_NetworkThreadRunning = true;
 	m_NetworkThread = std::thread([&]() {
 		// Networking
+		Math::Vec3 lastTrans;
 		while(m_NetworkThreadRunning) {
 			if(!m_Network.IsConnected()) {
 				m_Network.Connect();
@@ -86,12 +93,20 @@ void App::Start() {
 			}
 			else {
 				using namespace std::chrono_literals;
-				std::this_thread::sleep_for(20ms);
+				std::this_thread::sleep_for(16ms);
 				m_Network.Update();
 				SUS::Event event;
 				while(m_Network.PollEvent(event)) {
-					std::cout << "AJJJJJJ MSESASGE" << "\n";
-					m_Network.Send(32);
+					if(event.Message.Protocol == SUS::Protocol::UDP && event.Message.Size == sizeof(PositionalMessage)) {
+						PositionalMessage msg = SUS_CAST_DATA(PositionalMessage, event.Message.Data);
+						m_PlayersPositions[msg.Id] = msg.Position;
+						// std::cout << m_PlayersPositions[msg.Id].x << " " << m_PlayersPositions[msg.Id].y << " " << m_PlayersPositions[msg.Id].z << "\n";
+					}
+				}
+
+				if(m_Camera.GetTranslation() != lastTrans) {
+					lastTrans = m_Camera.GetTranslation();
+					m_Network.Send(lastTrans, SUS::Protocol::UDP);
 				}
 			}
 		}
@@ -120,18 +135,20 @@ void App::Update(float _dt) {
 		m_Window.Mouse.SetPosition(windowCenter);
 
 		Math::Vec3 rotation = m_Camera.GetRotation() - Math::Vec3(mouse.y, mouse.x, 0.0f) * 0.3f;
-		rotation.x = max(min(rotation.x, M_PI/2.0), -M_PI/2.0);
+		rotation.x = std::max((float)std::min((float)rotation.x, (float)M_PI/2.0f), (float)-M_PI/2.0f);
 		m_Camera.SetRotation(rotation);
 	}
 
-	float movementX = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::D) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::A);
-	float movementZ = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::S) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::W);
-	float movementY = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::Space) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::ShiftLeft);
-	float velX = cos(m_Camera.GetRotation().y) * movementX + sin(m_Camera.GetRotation().y) * movementZ;
-	float velZ = sin(m_Camera.GetRotation().y) * -movementX + cos(m_Camera.GetRotation().y) * movementZ;
-	m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, movementY, velZ) * _dt * 30.0f);
+	if(m_Window.IsFocused()) {
+		float movementX = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::D) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::A);
+		float movementZ = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::S) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::W);
+		float movementY = (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::Space) - (float)m_Window.Keyboard.IsKeyPressed(OWL::Window::KeyboardEvent::ShiftLeft);
+		float velX = cos(m_Camera.GetRotation().y) * movementX + sin(m_Camera.GetRotation().y) * movementZ;
+		float velZ = sin(m_Camera.GetRotation().y) * -movementX + cos(m_Camera.GetRotation().y) * movementZ;
+		m_Camera.SetTranslation(m_Camera.GetTranslation() + Math::Vec3(velX, movementY, velZ) * _dt * 30.0f);
 
-	m_Audio.SetListener(m_Camera.GetTranslation(), m_Camera.GetRotation());
+		m_Audio.SetListener(m_Camera.GetTranslation(), m_Camera.GetRotation());
+	}
 
 	m_LightTranform.Translation.z += _dt/5.0f;
 	m_LightTranform.Translation.x = sin(m_LightTranform.Translation.z)*2.0f-1.0f;
@@ -147,6 +164,10 @@ void App::Update(float _dt) {
 	m_Renderer.Draw(Renderer::ShaderType::basic, m_Map, m_MapTexture, Math::Mat4::Translate(0.0f, -2.5f, 0.0f) * Math::Mat4::Scale(5.0f));
 
 	m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, m_Identity);
+
+	for(auto& pos : m_PlayersPositions) {
+		m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, Math::Mat4::Translate(pos.second.x, pos.second.y, pos.second.z));
+	}
 
 	m_Context.SwapBuffers();
 }

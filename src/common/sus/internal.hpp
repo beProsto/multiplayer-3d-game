@@ -41,15 +41,15 @@ protected:
 		m_Data = (uint8_t*)realloc(m_Data, m_Size+_size);
 		memcpy((m_Data+m_Size), _data, _size);
 		m_Size += _size;
-		SUS_DEB("Data pushed to the parser, %d bytes, full size: %d bytes\n", _size, m_Size);
+		SUS_DEB("Data pushed to the parser, %d bytes, full size: %d bytes\n", (int)_size, (int)m_Size);
 	}
 	void ParseData() {
 		while(true) {
 			if(m_ExpectedSize == 0 && m_Size >= 4) {
 				m_ExpectedSize = *(uint32_t*)m_Data;
-				SUS_DEB("Parser detected expected packet size: %d \n", m_ExpectedSize);
+				SUS_DEB("Parser detected expected packet size: %d \n", (int)m_ExpectedSize);
 			}
-			if(m_ExpectedSize > 0 && m_Size >= 4 + m_ExpectedSize) {
+			if(m_ExpectedSize > 0 && m_Size >= (4 + m_ExpectedSize)) {
 				uint8_t* data = (m_Data+4);
 
 				Data fdata;
@@ -62,7 +62,7 @@ protected:
 				memcpy(m_Data, m_Data+4+m_ExpectedSize, m_Size);
 				m_Data = (uint8_t*)realloc(m_Data, m_Size);
 
-				SUS_DEB("Parser found data bytes: %d, buffer cut to %d\n", 4 + m_ExpectedSize, m_Size);
+				SUS_DEB("Parser found data bytes: %d, buffer cut to %d\n", (int)(4 + m_ExpectedSize), (int)m_Size);
 
 				m_ExpectedSize = 0;
 			}
@@ -73,7 +73,6 @@ protected:
 	}
 
 protected:
-	Event m_EventBase;
 	std::queue<Data> m_DataQ;
 	uint32_t m_ExpectedSize;
 

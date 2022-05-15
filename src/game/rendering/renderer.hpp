@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../math/math.hpp"
+#include "../../common/math/math.hpp"
 #include "camera.hpp"
 #include "shader.hpp"
 #include "mesh.hpp"

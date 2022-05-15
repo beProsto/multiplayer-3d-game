@@ -92,28 +92,9 @@ protected:
 			}
 		}
 
-		// TCP Parsing
-		while(true) {
-			int countOfBytesReceived = recv(m_TCPConnection->GetSocket(), recvbuf, BUFFER_LEN, 0);
-			bool errorEncountered = WSAGetLastError() == WSAECONNRESET;
-
-			if(countOfBytesReceived > 0) {
-				m_TCPParser.SupplyData(recvbuf, countOfBytesReceived);
-			}
-			else if(errorEncountered) {
-				SUS_DEB("Socket disconnected!\n");
-				m_Connected = false;
-				break;
-			}
-			else {
-				break;
-			}
-		}
-
 		// UDP Messages
 		while(!m_UDPParser.GetDataQueue().empty()) {
-			Internal::Data parsed = m_TCPParser.GetDataQueue().front();
-			m_TCPParser.GetDataQueue().pop();
+			Internal::Data parsed = m_UDPParser.GetDataQueue().front();
 			
 			SUS_DEB("Received UDP Data, [(size:) %d, (first 4 bytes:) %d]\n", (int)parsed.Size, (int)*(uint32_t*)(parsed.Data));
 			
@@ -124,6 +105,27 @@ protected:
 			event.Message.Size = parsed.Size;
 			event.Message.Data = parsed.Data;
 			m_Events.push(event);
+
+			m_UDPParser.GetDataQueue().pop();
+		}
+
+		// TCP Parsing
+		while(true) {
+			int countOfBytesReceived = recv(m_TCPConnection->GetSocket(), recvbuf, BUFFER_LEN, 0);
+			bool errorEncountered = WSAGetLastError() == WSAECONNRESET;
+
+			if(countOfBytesReceived > 0) {
+				m_TCPParser.SupplyData(recvbuf, countOfBytesReceived);
+			}
+			else if(countOfBytesReceived == 0 || errorEncountered) {
+				SUS_DEB("Socket disconnected!\n");
+				closesocket(m_TCPConnection->GetSocket());
+				m_Connected = false;
+				break;
+			}
+			else {
+				break;
+			}
 		}
 
 		// TCP Messages
@@ -141,7 +143,7 @@ protected:
 				*(uint32_t*)(msg) = sizeof(SOCKET);
 				*(SOCKET*)(msg+sizeof(uint32_t)) = m_ID;
 
-				sendto(
+				sendto( // Sends the SOCKET Id over UDP
 					m_UDPConnection->GetSocket(), 
 					(const char*)msg, FIRST_MSG_SIZE,
 					0, m_UDPConnection->GetAddrInfo()->ai_addr, 

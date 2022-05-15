@@ -8,9 +8,9 @@
 #include <OWL/time.hpp>
 #include <OWL/GLContext.hpp>
 
-#include "../sus/networking.hpp"
+#include "../common/sus/networking.hpp"
 
-#include "math/math.hpp"
+#include "../common/math/math.hpp"
 #include "rendering/renderer.hpp"
 
 #include "transform.hpp"
@@ -37,6 +37,8 @@ protected:
 
 	bool m_NetworkThreadRunning;
 	std::thread m_NetworkThread;
+	
+	std::unordered_map<SOCKET, Math::Vec3> m_PlayersPositions;
 
 	Camera m_Camera;
 	Light m_SunLight;

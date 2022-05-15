@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/math.hpp"
+#include "../common/math/math.hpp"
 
 class Camera {
 public:

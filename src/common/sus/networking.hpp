@@ -12,6 +12,8 @@
 
 #ifndef SUS_DEBUG_OFF
 #define SUS_DEB(...) printf(__VA_ARGS__)
+#else
+#define SUS_DEB(...) 
 #endif
 
 #define SUS_DEFAULT_PORT "2137"
