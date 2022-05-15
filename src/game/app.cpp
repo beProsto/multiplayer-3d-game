@@ -2,9 +2,10 @@
 
 #include "audio/loaderWAV.hpp"
 
-App::App(OWL::Window& _window, OWL::GLContext& _context):
+App::App(OWL::Window& _window, OWL::GLContext& _context, SUS::Client& _network):
 m_Context(_context),
-m_Window(_window) {
+m_Window(_window),
+m_Network(_network) {
 }
 App::~App() {
 }
@@ -74,12 +75,35 @@ void App::Start() {
 	m_Sound.SetData(audio);
 	m_Sound.SetLooped(true);
 	m_Sound.Play();
+
+	m_NetworkThreadRunning = true;
+	m_NetworkThread = std::thread([&]() {
+		// Networking
+		while(!m_Network.IsConnected() && m_NetworkThreadRunning) {
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for(500ms);
+			m_Network.Connect();
+			std::cout << "Not yet hast we connected" << "\n";
+		}
+		while(m_NetworkThreadRunning) {
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for(20ms);
+			m_Network.Update();
+			SUS::Event event;
+			while(m_Network.PollEvent(event)) {
+				std::cout << "AJJJJJJ MSESASGE" << "\n";
+				m_Network.Send(32);
+			}
+		}
+	});
 }
 
 void App::Update(float _dt) {
 	// Debugging
 	if(m_Window.Keyboard.GetKeyData().KeyEnum == OWL::Window::KeyboardEvent::Escape) {
 		m_Window.Close();
+		m_NetworkThreadRunning = false;
+		m_NetworkThread.join();
 	}
 	if(m_Window.Keyboard.GetKeyData().KeyEnum == OWL::Window::KeyboardEvent::BackQuote) {
 		m_Window.Mouse.SetVisibility(!m_Window.Mouse.IsVisible());

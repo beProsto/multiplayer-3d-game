@@ -1,10 +1,14 @@
 #pragma once
 
+#include <thread>
+
 #include <glad/glad.h>
 
 #include <OWL/OWL.hpp>
 #include <OWL/time.hpp>
 #include <OWL/GLContext.hpp>
+
+#include "../sus/networking.hpp"
 
 #include "math/math.hpp"
 #include "rendering/renderer.hpp"
@@ -20,7 +24,7 @@ struct Vertex {
 
 class App {
 public:
-	App(OWL::Window& _window, OWL::GLContext& _context);
+	App(OWL::Window& _window, OWL::GLContext& _context, SUS::Client& _network);
 	~App();
 
 	void Start();
@@ -29,6 +33,10 @@ public:
 protected:
 	OWL::GLContext& m_Context;
 	OWL::Window& m_Window;
+	SUS::Client m_Network;
+
+	bool m_NetworkThreadRunning;
+	std::thread m_NetworkThread;
 
 	Camera m_Camera;
 	Light m_SunLight;
