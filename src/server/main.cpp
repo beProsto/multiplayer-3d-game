@@ -2,8 +2,6 @@
 #include "../common/sus/networking.hpp"
 #include "../common/math/math.hpp"
 
-#define SUS_CAST_DATA(t, d) *(t*)d
-
 #include <thread>
 #include <chrono>
 
@@ -40,10 +38,10 @@ int main(int argc, char** argv) {
 
 				case SUS::EventType::MessageReceived: {
 					if(event.Message.Protocol == SUS::Protocol::UDP) {
-						Math::Vec3 position = SUS_CAST_DATA(Math::Vec3, event.Message.Data);
-						Math::Vec3 rotation = SUS_CAST_DATA(Math::Vec3, event.Message.Data+sizeof(Math::Vec3));
+						Math::Vec3 position = SUS_CAST_DATA(Math::Vec3, (event.Message.Data));
+						Math::Vec3 rotation = SUS_CAST_DATA(Math::Vec3, (event.Message.Data+sizeof(Math::Vec3)));
 						
-						std::cout << event.Message.ClientId << " [ " << position.x << ", " << position.y << ", " << position.z <<  " ]\n";
+						std::cout << event.Message.ClientId << " [ " << position.x << ", " << position.y << ", " << position.z << " : " << rotation.x << ", " << rotation.y << ", " << rotation.z << " ]\n";
 						
 						playersPositions[event.Message.ClientId] = position;
 						

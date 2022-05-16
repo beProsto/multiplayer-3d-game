@@ -5,6 +5,8 @@
 #include "networking.hpp"
 #include "event.hpp"
 
+#define SUS_CAST_DATA(type, dataPtr) *(type*)(dataPtr)
+
 namespace SUS {
 namespace Internal {
 

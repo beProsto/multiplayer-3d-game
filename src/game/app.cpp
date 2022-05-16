@@ -19,7 +19,6 @@ App::~App() {
 // 	printf("---------------\n");
 // }
 
-#define SUS_CAST_DATA(t, d) *(t*)d
 struct PositionalMessage {
 	SOCKET Id;
 	Math::Vec3 Position;
@@ -157,7 +156,8 @@ void App::Update(float _dt) {
 		m_Window.Mouse.SetPosition(windowCenter);
 
 		Math::Vec3 rotation = m_Camera.GetRotation() - Math::Vec3(mouse.y, mouse.x, 0.0f) * 0.3f;
-		rotation.x = std::max((float)std::min((float)rotation.x, (float)M_PI/2.0f), (float)-M_PI/2.0f);
+		using namespace std; // std::min / std::max are also defined as min() and max() macros somewhere and sometimes they clash during compilation, this thing assures that it compiles no matter the compiler
+		rotation.x = max((float)min((float)rotation.x, (float)M_PI/2.0f), (float)-M_PI/2.0f);
 		m_Camera.SetRotation(rotation);
 	}
 

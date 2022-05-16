@@ -107,7 +107,7 @@ protected:
 			event.Message.ClientId = 0;
 			event.Message.Protocol = Protocol::UDP;
 			event.Message.Size = parsed.Size;
-			event.Message.Data = parsed.Data;
+			event.Message.Data = (uint8_t*)parsed.Data;
 			m_Events.push(event);
 
 			m_UDPParser.GetDataQueue().pop();
@@ -123,8 +123,19 @@ protected:
 			}
 			else if(countOfBytesReceived == 0 || errorEncountered) {
 				SUS_DEB("Socket disconnected!\n");
-				closesocket(m_TCPConnection->GetSocket());
+				
+				delete m_TCPConnection;
+				delete m_UDPConnection;
+
+				m_TCPConnection = new Internal::Connection();
+				m_UDPConnection = new Internal::Connection();
+
+				m_TCPConnection->Create(m_Host.c_str(), m_Port.c_str(), Internal::Connection::Type::TCP);
+				m_UDPConnection->Create(m_Host.c_str(), m_Port.c_str(), Internal::Connection::Type::UDP);
+				
+				m_ID = INVALID_SOCKET;
 				m_Connected = false;
+
 				break;
 			}
 			else {
@@ -164,7 +175,7 @@ protected:
 				event.Message.ClientId = 0;
 				event.Message.Protocol = Protocol::TCP;
 				event.Message.Size = parsed.Size;
-				event.Message.Data = parsed.Data;
+				event.Message.Data = (uint8_t*)parsed.Data;
 				m_Events.push(event);
 			}
 		}

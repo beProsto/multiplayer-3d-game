@@ -100,6 +100,7 @@ protected:
 				// Stringify udp client info
 				std::string id(Internal::IdUDP(udpInfo));
 				if(m_UDPMap.find(id) == m_UDPMap.end()) {
+					SUS_DEB("New UDP Map Member!\n");
 					m_UDPMap[id];
 					m_UDPMap[id].UDP = udpInfo;
 					m_UDPMap[id].TCP = INVALID_SOCKET; 
@@ -136,7 +137,7 @@ protected:
 				}
 				event.Message.Protocol = Protocol::UDP;
 				event.Message.Size = parsed.Size;
-				event.Message.Data = parsed.Data;
+				event.Message.Data = (uint8_t*)parsed.Data;
 				m_Events.push(event);
 			}
 		}
@@ -159,6 +160,15 @@ protected:
 				else if(countOfBytesReceived == 0 || errorEncountered) {
 					SUS_DEB("Client disconnected: %d\n", (int)sock);
 					
+					for(auto it = m_UDPMap.cbegin(); it != m_UDPMap.cend();) {
+						if (it->second.TCP == sock) {
+							it = m_UDPMap.erase(it); // or m_UDPMap.erase(it++) / "it = m_UDPMap.erase(it)" since C++11
+						}
+						else {
+							++it;
+						}
+					}
+
 					closesocket(sock);
 					m_Clients.erase(m_Clients.begin() + i);
 
@@ -188,7 +198,7 @@ protected:
 				event.Message.ClientId = tcp.first;
 				event.Message.Protocol = Protocol::TCP;
 				event.Message.Size = parsed.Size;
-				event.Message.Data = parsed.Data;
+				event.Message.Data = (uint8_t*)parsed.Data;
 				m_Events.push(event);
 			}
 		}
