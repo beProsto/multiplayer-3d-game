@@ -8,6 +8,7 @@
 #include <OWL/time.hpp>
 #include <OWL/GLContext.hpp>
 
+#define SUS_DEBUG_OFF
 #include "../common/sus/networking.hpp"
 
 #include "../common/math/math.hpp"
