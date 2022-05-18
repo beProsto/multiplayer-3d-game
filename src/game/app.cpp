@@ -30,6 +30,9 @@ struct PositionalSemd {
 	Math::Vec3 Position;
 	Math::Vec3 Rotation;
 };
+struct DisconnectMessage {
+	SOCKET Client;
+};
 
 void App::Start() {
 	m_Plane.SupplyIndices({0, 1, 2, 2, 3, 0});
@@ -123,6 +126,10 @@ void App::Start() {
 							m_PlayersPositions[msg.Id].k = msg.Rotation.z;
 						}
 						// std::cout << m_PlayersPositions[msg.Id].x << " " << m_PlayersPositions[msg.Id].y << " " << m_PlayersPositions[msg.Id].z << "\n";
+					}
+					else if(event.Message.Protocol == SUS::Protocol::TCP && event.Message.Size == sizeof(DisconnectMessage)) {
+						DisconnectMessage msg = SUS_CAST_DATA(DisconnectMessage, event.Message.Data);
+						m_PlayersPositions.erase(msg.Client);
 					}
 				}
 

@@ -5,6 +5,7 @@ namespace SUS {
 namespace _Event {
 	struct Client {
 		SOCKET Id;
+		Protocol Protocol;
 	};
 	struct Message {
 		SOCKET ClientId;

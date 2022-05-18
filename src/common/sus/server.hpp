@@ -58,6 +58,22 @@ public:
 			}
 		}
 	}
+	template <typename T> void SendTo(const T& _data, SOCKET _client, Protocol _prot = Protocol::TCP) { Internal::Data data; data.Size = sizeof(T); data.Data = (void*)&_data; SendTo(data, _client, _prot); }
+	void SendTo(uint32_t _size, void* _data, SOCKET _client, Protocol _prot = Protocol::TCP) { Internal::Data data; data.Size = _size; data.Data = _data; SendTo(data, _client, _prot); }
+	void SendTo(const Internal::Data& _data, SOCKET _client, Protocol _prot = Protocol::TCP) {
+		Internal::DataSerialiser serialised(_data);
+		if(_prot == Protocol::TCP) {
+			send(_client, (const char*)serialised.GetData(), 4 + _data.Size, 0);
+		}
+		else {
+			sendto(
+				m_UDPConnection->GetSocket(), 
+				(const char*)serialised.GetData(), 4 + _data.Size,
+				0, (sockaddr*)&m_TCPToUDPMap[_client],
+				(int)m_UDPConnection->GetAddrInfo()->ai_addrlen
+			);
+		}
+	}
 
 protected:
 	void UpdateClients() {
@@ -83,6 +99,7 @@ protected:
 			Event event;
 			event.Type = EventType::ClientConnected;
 			event.Client.Id = clientSocket;
+			event.Client.Protocol = Protocol::TCP;
 			m_Events.push(event);
 		}
 	}
@@ -123,22 +140,28 @@ protected:
 				
 				SUS_DEB("Received UDP Data, [(size:) %d, (first 4 bytes:) %d]\n", (int)parsed.Size, (int)*(uint32_t*)(parsed.Data));
 				
-				Event event;
-				event.Type = EventType::MessageReceived;
 				if(m_UDPMap[udp.first].TCP == INVALID_SOCKET) {
 					if(parsed.Size == sizeof(SOCKET)) {
 						SOCKET Id = *(SOCKET*)(parsed.Data);
 						m_UDPMap[udp.first].TCP = Id;
-						event.Message.ClientId = Id;
+						m_TCPToUDPMap[Id] = m_UDPMap[udp.first].UDP;
+
+						Event event;
+						event.Type = EventType::ClientConnected;
+						event.Client.Id = m_UDPMap[udp.first].TCP;
+						event.Client.Protocol = Protocol::UDP;
+						m_Events.push(event);
 					}
 				}
 				else {
+					Event event;
+					event.Type = EventType::MessageReceived;
 					event.Message.ClientId = m_UDPMap[udp.first].TCP;
+					event.Message.Protocol = Protocol::UDP;
+					event.Message.Size = parsed.Size;
+					event.Message.Data = (uint8_t*)parsed.Data;
+					m_Events.push(event);
 				}
-				event.Message.Protocol = Protocol::UDP;
-				event.Message.Size = parsed.Size;
-				event.Message.Data = (uint8_t*)parsed.Data;
-				m_Events.push(event);
 			}
 		}
 		
@@ -162,6 +185,7 @@ protected:
 					
 					for(auto it = m_UDPMap.cbegin(); it != m_UDPMap.cend();) {
 						if (it->second.TCP == sock) {
+							m_TCPToUDPMap.erase(it->second.TCP);
 							it = m_UDPMap.erase(it); // or m_UDPMap.erase(it++) / "it = m_UDPMap.erase(it)" since C++11
 						}
 						else {
@@ -209,6 +233,7 @@ protected:
 
 	std::vector<Internal::Socket> m_Clients;
 	std::unordered_map<std::string, Internal::Socket> m_UDPMap;
+	std::unordered_map<SOCKET, sockaddr_in> m_TCPToUDPMap;
 	
 	std::unordered_map<SOCKET,      Internal::DataParser> m_TCPParser;
 	std::unordered_map<std::string, Internal::DataParser> m_UDPParser;

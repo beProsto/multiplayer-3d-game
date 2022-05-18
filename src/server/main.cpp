@@ -10,11 +10,20 @@ struct PositionalMessage {
 	Math::Vec3 Position;
 	Math::Vec3 Rotation;
 };
+struct PositionalData {
+	Math::Vec3 Position;
+	Math::Vec3 Rotation;
+};
+struct DisconnectMessage {
+	SOCKET Client;
+};
 
 int main(int argc, char** argv) {
 	SUS::Server server;
 
 	int count = 0;
+
+	std::unordered_map<SOCKET, PositionalData> playerspos;
 
 	while(true) {
 		using namespace std::chrono_literals;
@@ -24,31 +33,52 @@ int main(int argc, char** argv) {
 
 		server.Update();
 
-		std::unordered_map<SOCKET, Math::Vec3> playersPositions;
-
 		while(server.PollEvent(event)) {
 			switch(event.Type) {
 				case SUS::EventType::ClientConnected: {
-					std::cout << "Ayo new guy " << event.Client.Id << "\n";
+					if(event.Client.Protocol == SUS::Protocol::TCP) {
+						std::cout << "Ayo new guy " << event.Client.Id << "\n";
+					}
+					else {
+						std::cout << "Ayo " << event.Client.Id << " is udp now" << "\n";
+						
+						for(auto& player : playerspos) {
+							PositionalMessage pm;
+							pm.Id = player.first;
+							pm.Position = player.second.Position;
+							pm.Rotation = player.second.Rotation;
+							server.SendTo(pm, event.Client.Id, SUS::Protocol::UDP);
+							std::cout << "Sent him " << player.first << " data!" << "\n";
+						}
+
+						playerspos[event.Message.ClientId] = PositionalData{Math::Vec3(0.0f, 0.0f, 1.0f), Math::Vec3(0.0f)};
+
+						PositionalMessage pm;
+						pm.Id = event.Client.Id;
+						pm.Position = Math::Vec3(0.0f, 0.0f, 1.0f);
+						pm.Rotation = Math::Vec3(0.0f);
+						server.Send(pm, SUS::Protocol::UDP);
+					}
 				} break;
 
 				case SUS::EventType::ClientDisconnected: {
 					std::cout << "Guy " << event.Client.Id << " left :pensive:" << "\n";
+					playerspos.erase(event.Client.Id);
+					server.Send(DisconnectMessage{event.Client.Id}, SUS::Protocol::TCP);
 				} break;
 
 				case SUS::EventType::MessageReceived: {
-					if(event.Message.Protocol == SUS::Protocol::UDP && event.Message.Size == sizeof(Math::Vec3)*2) {
-						Math::Vec3 position = SUS_CAST_DATA(Math::Vec3, (event.Message.Data));
-						Math::Vec3 rotation = SUS_CAST_DATA(Math::Vec3, (event.Message.Data+sizeof(Math::Vec3)));
+					if(event.Message.Protocol == SUS::Protocol::UDP && event.Message.Size == sizeof(PositionalData)) {
+						PositionalData posdata = SUS_CAST_DATA(PositionalData, (event.Message.Data));
 						
-						std::cout << event.Message.ClientId << " [ " << position.x << ", " << position.y << ", " << position.z << " : " << rotation.x << ", " << rotation.y << ", " << rotation.z << " ]\n";
+						std::cout << event.Message.ClientId << " [ " << posdata.Position.x << ", " << posdata.Position.y << ", " << posdata.Position.z << " : " << posdata.Rotation.x << ", " << posdata.Rotation.y << ", " << posdata.Rotation.z << " ]\n";
 						
-						playersPositions[event.Message.ClientId] = position;
+						playerspos[event.Message.ClientId] = posdata;
 						
 						PositionalMessage pm;
 						pm.Id = event.Message.ClientId;
-						pm.Position = position;
-						pm.Rotation = rotation;
+						pm.Position = posdata.Position;
+						pm.Rotation = posdata.Rotation;
 						
 						server.Send(pm, SUS::Protocol::UDP);
 					}
