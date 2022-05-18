@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 				} break;
 
 				case SUS::EventType::MessageReceived: {
-					if(event.Message.Protocol == SUS::Protocol::UDP) {
+					if(event.Message.Protocol == SUS::Protocol::UDP && event.Message.Size == sizeof(Math::Vec3)*2) {
 						Math::Vec3 position = SUS_CAST_DATA(Math::Vec3, (event.Message.Data));
 						Math::Vec3 rotation = SUS_CAST_DATA(Math::Vec3, (event.Message.Data+sizeof(Math::Vec3)));
 						

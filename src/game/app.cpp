@@ -8,6 +8,8 @@ m_Window(_window),
 m_Network(_network) {
 }
 App::~App() {
+	m_NetworkThreadRunning = false;
+	m_NetworkThread.join();
 }
 
 // void d_printm4(Math::Mat4 m) {
@@ -138,8 +140,6 @@ void App::Update(float _dt) {
 	// Debugging
 	if(m_Window.Keyboard.GetKeyData().KeyEnum == OWL::Window::KeyboardEvent::Escape) {
 		m_Window.Close();
-		m_NetworkThreadRunning = false;
-		m_NetworkThread.join();
 	}
 	if(m_Window.Keyboard.GetKeyData().KeyEnum == OWL::Window::KeyboardEvent::BackQuote) {
 		m_Window.Mouse.SetVisibility(!m_Window.Mouse.IsVisible());
