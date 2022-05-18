@@ -67,7 +67,7 @@ public:
 		if(_prot == Protocol::TCP) {
 			send(m_TCPConnection->GetSocket(), (const char*)serialised.GetData(), 4 + _data.Size, 0);
 		}
-		else {
+		else if(m_ID != INVALID_SOCKET) {
 			sendto(
 				m_UDPConnection->GetSocket(), 
 				(const char*)serialised.GetData(), 4 + _data.Size,
