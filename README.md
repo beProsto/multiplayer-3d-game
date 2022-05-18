@@ -22,3 +22,8 @@ make
 
 Given you have [`make`](http://gnuwin32.sourceforge.net/packages/make.htm) and the [`clang`](https://clang.llvm.org/get_started.html) `C`/`C++` compiler installed, the project should run!
 If you have any problems, please tell me about them!
+
+If you're using gcc instead of clang, you can compile with:
+```
+make CC=gcc CXX=g++ AR=ar
+```
