@@ -188,7 +188,7 @@ void App::Update(float _dt) {
 	m_Renderer.Draw(Renderer::ShaderType::inv, m_Plane, m_BaseTexture, m_Identity);
 
 	for(auto& pos : m_PlayersPositions) {
-		m_Renderer.Draw(Renderer::ShaderType::inv, m_Robot, m_BaseTexture, Transform(Math::Vec3(pos.second.x, pos.second.y - 4.5f, pos.second.z), Math::Vec3(pos.second.i, pos.second.j, pos.second.k)).GetMatrix());
+		m_Renderer.Draw(Renderer::ShaderType::basic, m_Robot, m_BaseTexture, Transform(Math::Vec3(pos.second.x, pos.second.y - 4.5f, pos.second.z), Math::Vec3(pos.second.i, pos.second.j, pos.second.k)).GetMatrix());
 	}
 
 	m_Context.SwapBuffers();
