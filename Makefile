@@ -3,13 +3,13 @@ CXX = clang++
 AR = llvm-ar
 WINDRES = windres
 
-CXX_FLAGS = -std=c++17 -Wall -Wpedantic -O3
-CC_FLAGS = -O3
+CXX_FLAGS = -std=c++17 -Wall -Wpedantic -O3 -static -DAL_LIBTYPE_STATIC 
+CC_FLAGS = -O3 -static -DAL_LIBTYPE_STATIC
 
 ifeq ($(OS),Windows_NT)
 SRV = server.exe
 EXE = game.exe
-LINK_OWL = -lopengl32 -lglu32 -lgdi32 -luser32 -lcomctl32 -lkernel32 -lshell32 -lxinput -lws2_32 -lmswsock -ladvapi32
+LINK_OWL = -lopengl32 -lglu32 -lgdi32 -luser32 -lcomctl32 -lkernel32 -lshell32 -lxinput -lws2_32 -lmswsock -ladvapi32 -lwinmm -lole32
 OWL_LIB_FILE = ext/OWL/build/OWL.lib
 OPENAL_LIB_FILE = ext/openal-soft/build/Release/OpenAL32.lib
 RES = app.res
@@ -60,7 +60,7 @@ $(OBJ_SRVR_DIR)/%.o: $(SRC_SRVR_DIR)/%.cpp $(HDRS)
 
 
 $(EXE): $(OBJS_GAME) objs/glad.o $(OWL_LIB_FILE) $(RES)
-	$(CXX) $(OBJS_GAME) objs/glad.o $(RES) $(OWL_FLAGS) $(GLAD_FLAGS) $(OPENAL_FLAGS) $(STB_FLAGS) $(CXX_FLAGS) -o $(EXE)
+	$(CXX) $(OBJS_GAME) objs/glad.o $(RES) $(OPENAL_FLAGS) $(OWL_FLAGS) $(GLAD_FLAGS) $(STB_FLAGS) $(CXX_FLAGS) -o $(EXE)
 
 $(OBJ_GAME_DIR)/%.o: $(SRC_GAME_DIR)/%.cpp $(HDRS)
 	$(CXX) $(word 1, $^) $(OWL_INCLUDE) $(GLAD_INCLUDE) $(OPENAL_INCLUDE) $(STB_INCLUDE) $(CXX_FLAGS) -c -o $@
