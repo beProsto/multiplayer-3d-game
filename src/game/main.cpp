@@ -14,7 +14,7 @@ int Main(const std::vector<std::string>& _args) {
 	std::string networkHostAddress = "127.0.0.1";
 
 	if(_args.size() >= 2) {
-		networkHostAddress = _args[2];
+		networkHostAddress = _args[1];
 	}
 
 	SUS::Client network(networkHostAddress);
