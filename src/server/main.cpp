@@ -21,8 +21,6 @@ struct DisconnectMessage {
 int main(int argc, char** argv) {
 	SUS::Server server;
 
-	int count = 0;
-
 	std::unordered_map<SOCKET, PositionalData> playerspos;
 
 	while(true) {
@@ -37,11 +35,14 @@ int main(int argc, char** argv) {
 			switch(event.Type) {
 				case SUS::EventType::ClientConnected: {
 					if(event.Client.Protocol == SUS::Protocol::TCP) {
+						// A new client has connected
 						std::cout << "Ayo new guy " << event.Client.Id << "\n";
 					}
 					else {
+						// A connected client has established a UDP connection
 						std::cout << "Ayo " << event.Client.Id << " is udp now" << "\n";
 						
+						// We send them all the players' positions
 						for(auto& player : playerspos) {
 							PositionalMessage pm;
 							pm.Id = player.first;
@@ -51,8 +52,10 @@ int main(int argc, char** argv) {
 							std::cout << "Sent him " << player.first << " data!" << "\n";
 						}
 
+						// We append them to the player positions' list
 						playerspos[event.Message.ClientId] = PositionalData{Math::Vec3(0.0f, 0.0f, 1.0f), Math::Vec3(0.0f)};
 
+						// We send info about them to everyone
 						PositionalMessage pm;
 						pm.Id = event.Client.Id;
 						pm.Position = Math::Vec3(0.0f, 0.0f, 1.0f);
@@ -62,17 +65,21 @@ int main(int argc, char** argv) {
 				} break;
 
 				case SUS::EventType::ClientDisconnected: {
+					// A client has disconnected
 					std::cout << "Guy " << event.Client.Id << " left :pensive:" << "\n";
 					playerspos.erase(event.Client.Id);
+					// We inform the players about it
 					server.Send(DisconnectMessage{event.Client.Id}, SUS::Protocol::TCP);
 				} break;
 
 				case SUS::EventType::MessageReceived: {
 					if(event.Message.Protocol == SUS::Protocol::UDP && event.Message.Size == sizeof(PositionalData)) {
+						// We've receiver data about a player's position
 						PositionalData posdata = SUS_CAST_DATA(PositionalData, (event.Message.Data));
 						
 						std::cout << event.Message.ClientId << " [ " << posdata.Position.x << ", " << posdata.Position.y << ", " << posdata.Position.z << " : " << posdata.Rotation.x << ", " << posdata.Rotation.y << ", " << posdata.Rotation.z << " ]\n";
 						
+						// We inform other players of the player's position
 						playerspos[event.Message.ClientId] = posdata;
 						
 						PositionalMessage pm;
@@ -85,7 +92,5 @@ int main(int argc, char** argv) {
 				} break;
 			}
 		}
-		
-		count++;
 	}
 }
