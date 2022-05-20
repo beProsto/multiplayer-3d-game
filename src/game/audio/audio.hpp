@@ -2,7 +2,7 @@
 
 #include "audiodata.hpp"
 
-#include "../math/math.hpp"
+#include "../../common/math/math.hpp"
 
 struct AudioSourceImpl;
 class AudioSource {

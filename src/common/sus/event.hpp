@@ -1,0 +1,34 @@
+#pragma once
+
+namespace SUS {
+
+namespace _Event {
+	struct Client {
+		SOCKET Id;
+		Protocol Protocol;
+	};
+	struct Message {
+		SOCKET ClientId;
+		Protocol Protocol;
+		uint32_t Size;
+		uint8_t* Data;
+	};
+}
+
+enum class EventType {
+	ClientConnected,
+	ClientDisconnected,
+
+	MessageReceived
+};
+
+struct Event {
+	EventType Type;
+
+	union {
+		_Event::Client Client;
+		_Event::Message Message;
+	};
+};
+
+}

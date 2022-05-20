@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/math.hpp"
+#include "../../common/math/math.hpp"
 
 class Camera {
 public:
@@ -18,15 +18,15 @@ public:
 
 	}
 
-	const Math::Mat4& GetMatrix() {
+	const Math::Mat4& GetMatrix() const {
 		RecalcMat();
 		return m_Mat;
 	}
-	const Math::Mat4& GetProjMatrix() {
+	const Math::Mat4& GetProjMatrix() const {
 		RecalcProj();
 		return m_Proj;
 	}
-	const Math::Mat4& GetViewMatrix() {
+	const Math::Mat4& GetViewMatrix() const {
 		RecalcView();
 		return m_View;
 	}
@@ -73,7 +73,7 @@ public:
 	}
 
 private:
-	void RecalcProj() {
+	void RecalcProj() const {
 		if(!m_RecalcProj) {
 			return;
 		}
@@ -86,7 +86,7 @@ private:
 		// std::cout << "Camera: Proj Matrix recalc!\n";
 
 	}
-	void RecalcView() {
+	void RecalcView() const {
 		if(!m_RecalcView) {
 			return;
 		}
@@ -104,7 +104,7 @@ private:
 		// std::cout << "Camera: View Matrix recalc!\n";
 	}
 
-	void RecalcMat() {
+	void RecalcMat() const {
 		RecalcProj();
 		RecalcView();
 
@@ -123,15 +123,15 @@ private:
 	Math::Vec3 m_Translation;
 	Math::Vec3 m_Rotation;
 
-	Math::Mat4 m_View;
-	Math::Mat4 m_Proj;
+	mutable Math::Mat4 m_View;
+	mutable Math::Mat4 m_Proj;
 
-	Math::Mat4 m_Mat;
+	mutable Math::Mat4 m_Mat;
 
 	float m_FieldOfView;
 	float m_AspectRatio;
 
-	bool m_RecalcView;
-	bool m_RecalcProj;
-	bool m_RecalcMat;
+	mutable bool m_RecalcView;
+	mutable bool m_RecalcProj;
+	mutable bool m_RecalcMat;
 };

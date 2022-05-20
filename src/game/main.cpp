@@ -1,8 +1,6 @@
 #include "app.hpp"
 #include <chrono>
 
-#include "networking/networking.hpp"
-
 #define DEBUG
 
 int Main(const std::vector<std::string>& _args) {
@@ -13,19 +11,16 @@ int Main(const std::vector<std::string>& _args) {
 	}
 	#endif
 
+	std::string networkHostAddress = "127.0.0.1";
+
 	if(_args.size() >= 2) {
-		if(_args[1] == "client") {
-			NetworkClient net;
-		}
-		else if(_args[1] == "server") {
-			NetworkServer net;
-		}
-		system("PAUSE");
-		return 1;
+		networkHostAddress = _args[1];
 	}
 
+	SUS::Client network(networkHostAddress);
+
 	OWL::GLContext context;
-	OWL::Window window(&context, "Multiplayer 3D Gaem ^^");
+	OWL::Window window(&context, "Multiplayer 3D Gaem ^^", OWL::Vec2i(0), OWL::Vec2ui(1280, 720));
 	window.SetMaxGamepads(0);
 	
 	// Initialise GLAD	
@@ -34,7 +29,7 @@ int Main(const std::vector<std::string>& _args) {
 		return -1;
 	}
 
-	App app(window, context);
+	App app(window, context, network);
 	app.Start();
 
 	auto timeLast = std::chrono::high_resolution_clock::now();

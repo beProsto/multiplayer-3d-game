@@ -1,12 +1,17 @@
 #pragma once
 
+#include <thread>
+
 #include <glad/glad.h>
 
 #include <OWL/OWL.hpp>
 #include <OWL/time.hpp>
 #include <OWL/GLContext.hpp>
 
-#include "math/math.hpp"
+#define SUS_DEBUG_OFF
+#include "../common/sus/networking.hpp"
+
+#include "../common/math/math.hpp"
 #include "rendering/renderer.hpp"
 
 #include "transform.hpp"
@@ -20,7 +25,7 @@ struct Vertex {
 
 class App {
 public:
-	App(OWL::Window& _window, OWL::GLContext& _context);
+	App(OWL::Window& _window, OWL::GLContext& _context, SUS::Client& _network);
 	~App();
 
 	void Start();
@@ -29,6 +34,12 @@ public:
 protected:
 	OWL::GLContext& m_Context;
 	OWL::Window& m_Window;
+	SUS::Client m_Network;
+
+	bool m_NetworkThreadRunning;
+	std::thread m_NetworkThread;
+	
+	std::unordered_map<SOCKET, Vertex> m_PlayersPositions;
 
 	Camera m_Camera;
 	Light m_SunLight;
@@ -47,6 +58,7 @@ protected:
 	Mesh m_Plane;
 	Mesh m_Map;
 	Mesh m_Mesh;
+	Mesh m_Robot;
 	
 	Math::Mat4 m_Identity;
 };

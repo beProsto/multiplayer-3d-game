@@ -2,6 +2,8 @@
 #define _ORE_MATH_HPP_HEADER_FILE_GUARD
 
 #include <cmath>
+#include <cstdlib>
+#include <algorithm>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288

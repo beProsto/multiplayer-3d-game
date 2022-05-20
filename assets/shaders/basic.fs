@@ -17,6 +17,6 @@ void main() {
 
 	vec3 diffuse = u_lightcolor * max(dot(normalize(-u_lightdir), normalize(v_nor)), 0.0); 
 
-	res *= ambient + diffuse;
+	res *= ambient + diffuse / 2.0;
 	col = vec4(res, 1.0);
 }
