@@ -14,7 +14,8 @@ target_include_directories(game PRIVATE ext/openal-soft/include)
 target_sources(game PRIVATE ext/glad/src/glad.c)
 target_sources(game PRIVATE ext/OWL/src/OWL.cpp)
 target_link_options(game PRIVATE -static)
-target_link_options(game PRIVATE ../ext/openal-soft/build/Release/OpenAL32.lib)
+target_compile_definitions(game PRIVATE AL_LIBTYPE_STATIC)
+# target_link_options(game PRIVATE ../ext/openal-soft/build/Release/OpenAL32.lib)
 
 # Linking OWL
 target_link_libraries(game PRIVATE opengl32 glu32 gdi32 user32 comctl32 kernel32 shell32 xinput ws2_32 mswsock advapi32 winmm ole32)
