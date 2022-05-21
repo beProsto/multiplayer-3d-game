@@ -8,3 +8,5 @@ app.exe
 
 build/*
 !build/.build
+
+.vscode
