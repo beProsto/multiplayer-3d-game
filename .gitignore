@@ -9,6 +9,4 @@ app.exe
 build/*
 !build/.build
 
-src/common/windres
-
 .vscode
