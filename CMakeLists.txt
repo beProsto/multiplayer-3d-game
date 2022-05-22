@@ -54,6 +54,11 @@ file(GLOB_RECURSE game_srcs
 )
 target_sources(game PRIVATE ${game_srcs})
 
+# icon resource
+if(WIN32)
+target_link_options(game PRIVATE icon.res)
+endif()
+
 
 # ////
 # SERVER
@@ -69,6 +74,11 @@ file(GLOB_RECURSE server_srcs
 	"src/server/*.cpp"
 )
 target_sources(server PRIVATE ${server_srcs})
+
+# icon resource
+if(WIN32)
+target_link_options(server PRIVATE icon.res)
+endif()
 
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
