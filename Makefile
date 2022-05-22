@@ -9,6 +9,9 @@ else
 icon = 
 endif
 
+run: compile
+	start build\game & build\server
+
 compile: $(icon)
 	cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Debug "-DCMAKE_C_COMPILER:FILEPATH=$(CC)" "-DCMAKE_CXX_COMPILER:FILEPATH=$(CXX)" -G "$(G)" & cmake --build ./build -j $(J)
 
