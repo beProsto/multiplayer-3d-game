@@ -5,3 +5,8 @@ app.exe
 *.o
 
 *.res
+
+build/*
+!build/.build
+
+.vscode
