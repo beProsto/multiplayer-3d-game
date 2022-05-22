@@ -79,12 +79,16 @@ protected:
 	void UpdateClients() {
 		SOCKET clientSocket;
 		while(true) {
-			clientSocket = accept(m_TCPConnection->GetSocket(), nullptr, nullptr);
+			sockaddr_in clientAddr = {};
+			int addrlen = sizeof(clientAddr);
+			clientSocket = accept(m_TCPConnection->GetSocket(), (sockaddr*)&clientAddr, &addrlen);
 			if(clientSocket == INVALID_SOCKET) {
 				break;
 			}
 
-			SUS_DEB("Client connected: %d\n", (int)clientSocket);
+			m_TCPAddrMap[clientSocket] = clientAddr;
+
+			SUS_DEB("Client connected: %d // PORT: %d // ADDR: %d\n", (int)clientSocket, (int)clientAddr.sin_port, (int)clientAddr.sin_addr.s_addr);
 			Internal::Socket newClient = {};
 			newClient.TCP = clientSocket;
 			m_Clients.push_back(newClient);
@@ -145,6 +149,12 @@ protected:
 						SOCKET Id = *(SOCKET*)(parsed.Data);
 						m_UDPMap[udp.first].TCP = Id;
 						m_TCPToUDPMap[Id] = m_UDPMap[udp.first].UDP;
+
+						SUS_DEB("UDP established: %d // PORT: %d // ADDR: %d\n", (int)Id, (int)m_TCPToUDPMap[Id].sin_port, (int)m_TCPToUDPMap[Id].sin_addr.s_addr);
+
+						if(m_TCPAddrMap[Id].sin_port == m_TCPToUDPMap[Id].sin_port) {
+							SUS_DEB("ADDRESSES CHECK OUT!!!!!\n");
+						}
 
 						Event event;
 						event.Type = EventType::ClientConnected;
@@ -235,6 +245,8 @@ protected:
 	std::unordered_map<std::string, Internal::Socket> m_UDPMap;
 	std::unordered_map<SOCKET, sockaddr_in> m_TCPToUDPMap;
 	
+	std::unordered_map<SOCKET, sockaddr_in> m_TCPAddrMap;
+
 	std::unordered_map<SOCKET,      Internal::DataParser> m_TCPParser;
 	std::unordered_map<std::string, Internal::DataParser> m_UDPParser;
 
