@@ -1,7 +1,6 @@
 #pragma once
 
 #include "networking.hpp"
-#include "internal.hpp"
 
 namespace SUS {
 
@@ -47,7 +46,7 @@ public:
 		return m_Connected;
 	}
 
-	SOCKET GetId() const {
+	Internal::ClientID GetId() const {
 		return m_ID;
 	}
 
@@ -148,17 +147,17 @@ protected:
 			Internal::Data parsed = m_TCPParser.GetDataQueue().front();
 			m_TCPParser.GetDataQueue().pop();
 			
-			if(m_ID == INVALID_SOCKET && parsed.Size == sizeof(SOCKET)) {
-				const uint32_t FIRST_MSG_SIZE = 4+sizeof(SOCKET);
+			if(m_ID == INVALID_SOCKET && parsed.Size == sizeof(Internal::ClientID)) {
+				const uint32_t FIRST_MSG_SIZE = 4+sizeof(Internal::ClientID);
 
-				m_ID = *(SOCKET*)(parsed.Data);
+				m_ID = *(Internal::ClientID*)(parsed.Data);
 				free(parsed.Data);
 
 				char msg[FIRST_MSG_SIZE] = {};
-				*(uint32_t*)(msg) = sizeof(SOCKET);
-				*(SOCKET*)(msg+sizeof(uint32_t)) = m_ID;
+				*(uint32_t*)(msg) = sizeof(Internal::ClientID);
+				*(Internal::ClientID*)(msg+sizeof(uint32_t)) = m_ID;
 
-				sendto( // Sends the SOCKET Id over UDP
+				sendto( // Sends the Internal::ClientID Id over UDP
 					m_UDPConnection->GetSocket(), 
 					(const char*)msg, FIRST_MSG_SIZE,
 					0, m_UDPConnection->GetAddrInfo()->ai_addr, 
@@ -187,7 +186,7 @@ protected:
 
 	bool m_Connected;
 
-	SOCKET m_ID;
+	Internal::ClientID m_ID;
 
 	Internal::DataParser m_TCPParser;
 	Internal::DataParser m_UDPParser;

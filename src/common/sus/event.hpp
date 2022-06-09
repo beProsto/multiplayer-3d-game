@@ -1,14 +1,16 @@
 #pragma once
 
+#include "networking.hpp"
+
 namespace SUS {
 
 namespace _Event {
 	struct Client {
-		SOCKET Id;
+		Internal::ClientID Id;
 		Protocol Protocol;
 	};
 	struct Message {
-		SOCKET ClientId;
+		Internal::ClientID ClientId;
 		Protocol Protocol;
 		uint32_t Size;
 		uint8_t* Data;

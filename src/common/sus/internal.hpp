@@ -2,6 +2,18 @@
 
 #include <string>
 
+namespace SUS {
+namespace Internal {
+
+#ifdef _WIN32 
+typedef SOCKET ClientID;
+#else
+typedef int ClientID;
+#endif
+
+}
+}
+
 #include "networking.hpp"
 #include "event.hpp"
 
@@ -187,7 +199,7 @@ public:
 	addrinfo* GetAddrInfo() {
 		return m_AddrInfo;
 	}
-	SOCKET GetSocket() {
+	ClientID GetSocket() {
 		return m_Socket;
 	}
 	Type GetType() {
@@ -196,12 +208,12 @@ public:
 
 protected:
 	addrinfo* m_AddrInfo;
-	SOCKET m_Socket;
+	ClientID m_Socket;
 	Type m_Type;
 };
 
 struct Socket {
-	SOCKET TCP = INVALID_SOCKET;
+	ClientID TCP = INVALID_SOCKET;
 	sockaddr_in UDP = {};
 };
 

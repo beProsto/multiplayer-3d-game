@@ -1,8 +1,6 @@
 #pragma once
 
 #include "networking.hpp"
-#include "internal.hpp"
-#include "event.hpp"
 
 namespace SUS {
 
@@ -58,9 +56,9 @@ public:
 			}
 		}
 	}
-	template <typename T> void SendTo(const T& _data, SOCKET _client, Protocol _prot = Protocol::TCP) { Internal::Data data; data.Size = sizeof(T); data.Data = (void*)&_data; SendTo(data, _client, _prot); }
-	void SendTo(uint32_t _size, void* _data, SOCKET _client, Protocol _prot = Protocol::TCP) { Internal::Data data; data.Size = _size; data.Data = _data; SendTo(data, _client, _prot); }
-	void SendTo(const Internal::Data& _data, SOCKET _client, Protocol _prot = Protocol::TCP) {
+	template <typename T> void SendTo(const T& _data, Internal::ClientID _client, Protocol _prot = Protocol::TCP) { Internal::Data data; data.Size = sizeof(T); data.Data = (void*)&_data; SendTo(data, _client, _prot); }
+	void SendTo(uint32_t _size, void* _data, Internal::ClientID _client, Protocol _prot = Protocol::TCP) { Internal::Data data; data.Size = _size; data.Data = _data; SendTo(data, _client, _prot); }
+	void SendTo(const Internal::Data& _data, Internal::ClientID _client, Protocol _prot = Protocol::TCP) {
 		Internal::DataSerialiser serialised(_data);
 		if(_prot == Protocol::TCP) {
 			send(_client, (const char*)serialised.GetData(), 4 + _data.Size, 0);
@@ -77,7 +75,7 @@ public:
 
 protected:
 	void UpdateClients() {
-		SOCKET clientSocket;
+		Internal::ClientID clientSocket;
 		while(true) {
 			sockaddr_in clientAddr = {};
 			int addrlen = sizeof(clientAddr);
@@ -93,11 +91,11 @@ protected:
 			newClient.TCP = clientSocket;
 			m_Clients.push_back(newClient);
 
-			// First TCP Message contains the client's SOCKET, it sends it back using UDP
-			const size_t MSG_SIZE = sizeof(uint32_t) + sizeof(SOCKET);
+			// First TCP Message contains the client's Internal::ClientID, it sends it back using UDP
+			const size_t MSG_SIZE = sizeof(uint32_t) + sizeof(Internal::ClientID);
 			char msg[MSG_SIZE] = {};
-			*(uint32_t*)(msg)  = sizeof(SOCKET);
-			*(SOCKET*)(msg+sizeof(uint32_t)) = clientSocket;
+			*(uint32_t*)(msg)  = sizeof(Internal::ClientID);
+			*(Internal::ClientID*)(msg+sizeof(uint32_t)) = clientSocket;
 			send(clientSocket, msg, MSG_SIZE, 0);
 
 			Event event;
@@ -145,8 +143,8 @@ protected:
 				SUS_DEB("Received UDP Data, [(size:) %d, (first 4 bytes:) %d]\n", (int)parsed.Size, (int)*(uint32_t*)(parsed.Data));
 				
 				if(m_UDPMap[udp.first].TCP == INVALID_SOCKET) {
-					if(parsed.Size == sizeof(SOCKET)) {
-						SOCKET Id = *(SOCKET*)(parsed.Data);
+					if(parsed.Size == sizeof(Internal::ClientID)) {
+						Internal::ClientID Id = *(Internal::ClientID*)(parsed.Data);
 						m_UDPMap[udp.first].TCP = Id;
 						m_TCPToUDPMap[Id] = m_UDPMap[udp.first].UDP;
 
@@ -178,7 +176,7 @@ protected:
 
 		// TCP Parsing
 		for(uint32_t i = 0; i < m_Clients.size(); i++) {
-			const SOCKET sock = m_Clients[i].TCP;
+			const Internal::ClientID sock = m_Clients[i].TCP;
 			while(true) {
 				int countOfBytesReceived = recv(sock, recvbuf, BUFFER_LEN, 0);
 				int err = WSAGetLastError();
@@ -243,11 +241,11 @@ protected:
 
 	std::vector<Internal::Socket> m_Clients;
 	std::unordered_map<std::string, Internal::Socket> m_UDPMap;
-	std::unordered_map<SOCKET, sockaddr_in> m_TCPToUDPMap;
+	std::unordered_map<Internal::ClientID, sockaddr_in> m_TCPToUDPMap;
 	
-	std::unordered_map<SOCKET, sockaddr_in> m_TCPAddrMap;
+	std::unordered_map<Internal::ClientID, sockaddr_in> m_TCPAddrMap;
 
-	std::unordered_map<SOCKET,      Internal::DataParser> m_TCPParser;
+	std::unordered_map<Internal::ClientID,      Internal::DataParser> m_TCPParser;
 	std::unordered_map<std::string, Internal::DataParser> m_UDPParser;
 
 	Internal::Connection* m_TCPConnection;
