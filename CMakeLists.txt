@@ -8,11 +8,6 @@ enable_testing()
 # GAME
 # ////
 
-# Compile OpenAL
-set(LIBTYPE STATIC)
-set(CMAKE_BUILD_TYPE Release)
-add_subdirectory(ext/openal-soft)
-
 # Game Compilation
 add_executable(game src/game/main.cpp)
 target_link_options(game PRIVATE -static)
@@ -22,15 +17,26 @@ target_include_directories(game PRIVATE ext/OWL/include)
 target_include_directories(game PRIVATE ext/stb/include)
 target_include_directories(game PRIVATE ext/openal-soft/include)
 
+# Compile OpenAL
+set(LIBTYPE STATIC)
+set(CMAKE_BUILD_TYPE Release)
+add_subdirectory(ext/openal-soft)
+
 # Linking OpenAL
 target_link_libraries(game PRIVATE OpenAL)
 target_compile_definitions(game PRIVATE AL_LIBTYPE_STATIC)
 
+# Compile OWL
+set(BUILD_EXAMPLES NO)
+add_subdirectory(ext/OWL)
+
+# Linking OWL
+target_link_libraries(game PRIVATE OWL)
+
 # Compiling GLAD
 target_sources(game PRIVATE ext/glad/src/glad.c)
 
-# Linking OWL
-target_sources(game PRIVATE ext/OWL/src/OWL.cpp)
+# Linking WIN32
 target_link_libraries(game PRIVATE 
 	opengl32 
 	glu32 
