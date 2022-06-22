@@ -55,7 +55,7 @@ target_link_libraries(game PRIVATE
 
 # Game's sources
 file(GLOB_RECURSE game_srcs
-	"src/game/*.h"
+	"src/game/*.hpp"
 	"src/game/*.cpp"
 )
 target_sources(game PRIVATE ${game_srcs})
@@ -76,7 +76,7 @@ target_link_libraries(server PRIVATE ws2_32 mswsock)
 
 # server's sources
 file(GLOB_RECURSE server_srcs
-	"src/server/*.h"
+	"src/server/*.hpp"
 	"src/server/*.cpp"
 )
 target_sources(server PRIVATE ${server_srcs})
